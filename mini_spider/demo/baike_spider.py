@@ -4,9 +4,10 @@
 
 
 from mini_spider.base.downloader import Downloader
+import pprint
 
-start_url = 'https://www.so.com/'
+start_url = 'http://36kr.com/'
 
-downloader = Downloader(url=start_url)
+downloader = Downloader(url=start_url, is_ajax=False)
 html = downloader.html
-print(html)
+pprint.pprint(html)

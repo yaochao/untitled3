@@ -16,7 +16,7 @@ class Downloader:
             service_args.append('--load-images=false')
             self.browser = webdriver.PhantomJS(service_args=service_args)
 
-    def __downlod(self):
+    def _downlod(self):
         ''' 下载页面，返回页面源代码 '''
         if self.is_ajax:
             self.browser.get(url=self.url)
@@ -28,10 +28,15 @@ class Downloader:
 
     @property
     def html(self):
-        return self.__downlod()
+        return self._downlod()
 
     def __del__(self):
-        if object.__getattribute__(self, 'browser'):
+        # try:
+        #     self.browser.close()
+        # except AttributeError:
+        #     pass
+
+        # builtins.hasattr(o, name):This is done by calling getattr(obj, name) and catching AttributeError
+        if hasattr(self, 'browser'):
             self.browser.close()
-            print('__del__ is called.')
 
