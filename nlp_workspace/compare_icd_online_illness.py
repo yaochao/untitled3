@@ -90,16 +90,12 @@ for i in same_mc_not_bm_icd:
         print(i, 'not in icd')
         continue
     icd.remove(i)
+
 row = len(same_mc_same_bm) + 1 + len(same_mc_not_bm) + 1 + 4
-sheet1.write(row, 0, 'v6.01中文名称1')
-sheet1.write(row, 1, 'v6.01编码1')
-sheet1.write(row, 2, 'v6.01中文名2')
-sheet1.write(row, 3, 'v6.01编码2')
-sheet1.write(row, 4, 'v6.01中文名称3')
-sheet1.write(row, 5, 'v6.01编码3')
-sheet1.write(row, 6, '线上库中文名称')
-sheet1.write(row, 7, '线上库编码')
-sheet1.write(row, 8, '1.完全一致 2.编码不一致 3.都不一致')
+row_head = ['v6.01中文名称1', 'v6.01编码1', 'v6.01中文名2', 'v6.01编码2', 'v6.01中文名称3', 'v6.01编码3', '线上库中文名称', '线上库编码', '1.完全一致 2.编码不一致 3.都不一致']
+for idx, i in enumerate(row_head):
+    sheet1.write(row, idx, i)
+
 for index, i in enumerate(online):
     ol_mc = i[0]
     ol_bm = i[1]
