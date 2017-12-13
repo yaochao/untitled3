@@ -13,4 +13,4 @@ class Parser:
 
     def parse(self):
         tree = etree.HTML(self.html)
-        tree.xpath(self.xpath).extract()
+        return tree.xpath(self.xpath)

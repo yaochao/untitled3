@@ -8,6 +8,7 @@ import cchardet
 from urllib.parse import urljoin
 from lxml import etree
 
+
 def downloader(url=''):
     '''
     下载器: 把网页源代码下载下来
@@ -16,7 +17,6 @@ def downloader(url=''):
     content = response.content
     text = content.decode(cchardet.detect(content)['encoding'])
     return text
-
 
 
 def parser(html):
@@ -76,6 +76,7 @@ def dispatcher():
 
     # 3. 把解析出来的数据放到管道里
     pipeline(all_titles)
+
 
 # 运行我的程序，这里是程序入口
 if __name__ == '__main__':
