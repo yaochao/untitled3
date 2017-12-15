@@ -7,10 +7,11 @@ from mini_spider.base.downloader import Downloader
 from mini_spider.base.parser import Parser
 import pprint
 
-start_url = 'http://36kr.com/'
+start_url = 'http://www.sothebys.com/en/auctions/2018/the-otto-naumann-sale-n09810.html'
 
 downloader = Downloader(url=start_url, is_ajax=True)
 html = downloader.html
 pprint.pprint(html)
-parser = Parser(xpath='//ul[@class="feed_ul"]/li/div/a/div[2]/h3/text()', html=html)
-pprint.pprint(parser.parse())
+
+# parser = Parser(xpath='//ul[@class="feed_ul"]/li/div/a/div[2]/h3/text()', html=html)
+# pprint.pprint(parser.parse())

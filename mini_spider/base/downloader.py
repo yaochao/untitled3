@@ -14,7 +14,7 @@ class Downloader:
         if is_ajax:
             service_args = []
             service_args.append('--load-images=false')
-            self.browser = webdriver.PhantomJS(service_args=service_args)
+            self.browser = webdriver.Chrome(service_args=service_args)
 
     def _downlod(self):
         ''' 下载页面，返回页面源代码 '''
