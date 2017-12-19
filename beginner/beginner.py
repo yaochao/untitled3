@@ -16,8 +16,10 @@ while a < 10:
     print(a)
     a += 1
 
+
 def hello():
     print('hello')
+
 
 class Hello(object):
     def __init__(self, name):
@@ -25,6 +27,7 @@ class Hello(object):
 
     def say(self):
         print('my name is ' + self.name)
+
 
 if __name__ == '__main__':
     hello = Hello(name='sb')
