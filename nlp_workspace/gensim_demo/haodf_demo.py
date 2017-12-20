@@ -5,6 +5,8 @@
 
 import csv
 import time
+import jieba
+import gensim
 
 
 def preprocessing():
@@ -33,3 +35,36 @@ def preprocessing():
                     index += 1
 
     print('cost time: {}'.format(time.time() - start))
+
+
+# NLP MAIN
+class Mysentences(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __iter__(self):
+        with open(self.filename, encoding='utf-8') as f:
+            f_csv = csv.reader(f)
+            for id, sentence in f_csv:
+                yield list(jieba.cut(sentence))
+
+
+file_path = '/Users/yaochao/python/corpus/haodf_chats_detail_100W_pre.csv'
+
+
+def train_model():
+    start = time.time()
+    sentences = Mysentences(file_path)
+    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=5, workers=3)
+    model.save(file_path + '.model')
+    print('cost time: {}'.format(time.time() - start))
+
+
+def use_model():
+    model = gensim.models.Word2Vec.load(file_path + '.model')
+    print(model.most_similar('发烧'))
+
+
+if __name__ == '__main__':
+    # train_model()
+    use_model()
