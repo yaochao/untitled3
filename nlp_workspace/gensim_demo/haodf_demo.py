@@ -8,6 +8,11 @@ import time
 import jieba
 import gensim
 
+# 配置好 logging，gensim 会打印出日志
+import logging
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+
 
 def preprocessing():
     '''
@@ -45,26 +50,42 @@ class Mysentences(object):
     def __iter__(self):
         with open(self.filename, encoding='utf-8') as f:
             f_csv = csv.reader(f)
-            for id, sentence in f_csv:
+            for idx, sentence in f_csv:
                 yield list(jieba.cut(sentence))
 
 
 file_path = '/Users/yaochao/python/corpus/haodf_chats_detail_100W_pre.csv'
 
-
-def train_model():
+def train_word2vec():
     start = time.time()
     sentences = Mysentences(file_path)
     model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=5, workers=3)
-    model.save(file_path + '.model')
+    model.save(file_path + '.word2vec_model')
+    print('cost time: {}'.format(time.time() - start))
+
+
+def train_tf_idf():
+    start = time.time()
+    sentences = Mysentences(file_path)
+    dictionary = gensim.corpora.Dictionary(sentences)
+    corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
+    model = gensim.models.TfidfModel(corpus)
+    model.save(file_path + '.tfidf_model')
     print('cost time: {}'.format(time.time() - start))
 
 
 def use_model():
-    model = gensim.models.Word2Vec.load(file_path + '.model')
-    print(model.most_similar('发烧'))
+    # model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
+    # print(model.wv.most_similar('发烧'))
 
+    model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
+    sentences = Mysentences(file_path)
+    dictionary = gensim.corpora.Dictionary(sentences)
+    corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
+    corpus_tfidf = model2[corpus]
+    print(corpus_tfidf)
 
 if __name__ == '__main__':
-    # train_model()
+    # train_word2vec()
     use_model()
+    # train_tf_idf()
