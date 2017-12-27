@@ -26,11 +26,12 @@ sentences = [s.split() for s in raw_sentences]
 # workers: 代表并行训练的线程数，默认为3 （当Cython安装的情况下才起作用？？）
 model = word2vec.Word2Vec(sentences=sentences, min_count=1, size=100, workers=3)
 # 构建模型 第二种操作: 把上面的一步操作分开两步：构造词表，训练模型
-model = gensim.models.Word2Vec(iter=1)  # an empty model, no training yet
-model.build_vocab(sentences)  # can be a non-repeatable, 1-pass generator
-model.train(sentences)  # can be a non-repeatable, 1-pass generator
+model2 = gensim.models.Word2Vec(iter=1)  # an empty model, no training yet
+model2.build_vocab(sentences)  # can be a non-repeatable, 1-pass generator
+model2.train(sentences)  # can be a non-repeatable, 1-pass generator
 # 进行相关性比较
 print(model.similarity('dogs', 'you'))
+print(model2.similarity('dogs', 'you'))
 
 
 # 3. 引入语料库
