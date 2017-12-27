@@ -54,7 +54,7 @@ class Mysentences(object):
                 yield list(jieba.cut(sentence))
 
 
-file_path = '/Users/yaochao/python/corpus/haodf_chats_detail_100W_pre.csv'
+file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_100W_pre.csv'
 
 def train_word2vec():
     start = time.time()
@@ -75,15 +75,15 @@ def train_tf_idf():
 
 
 def use_model():
-    # model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
-    # print(model.wv.most_similar('发烧'))
+    model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
+    print(model.wv.most_similar('大夫'))
 
-    model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
-    sentences = Mysentences(file_path)
-    dictionary = gensim.corpora.Dictionary(sentences)
-    corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
-    corpus_tfidf = model2[corpus]
-    print(corpus_tfidf)
+    # model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
+    # sentences = Mysentences(file_path)
+    # dictionary = gensim.corpora.Dictionary(sentences)
+    # corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
+    # corpus_tfidf = model2[corpus]
+    # print(corpus_tfidf)
 
 if __name__ == '__main__':
     # train_word2vec()

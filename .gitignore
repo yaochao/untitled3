@@ -196,6 +196,11 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-pdf/
+*.csv
+*.pdf
+*.xls
+*.xlsx
+*.doc
+*.docx
 
 # End of https://www.gitignore.io/api/macos,python,pycharm
