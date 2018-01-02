@@ -10,8 +10,13 @@ import gensim
 
 # 配置好 logging，gensim 会打印出日志
 import logging
+
+import xlrd
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+# jieba.load_userdict(f='/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt')
+file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_100W_pre.csv'
 
 
 def preprocessing():
@@ -54,12 +59,10 @@ class Mysentences(object):
                 yield list(jieba.cut(sentence))
 
 
-file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_100W_pre.csv'
-
 def train_word2vec():
     start = time.time()
     sentences = Mysentences(file_path)
-    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=5, workers=3)
+    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=3, workers=10)
     model.save(file_path + '.word2vec_model')
     print('cost time: {}'.format(time.time() - start))
 
@@ -76,7 +79,8 @@ def train_tf_idf():
 
 def use_model():
     model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
-    print(model.wv.most_similar('大夫'))
+    print(model.wv.most_similar('恶性贫血'))
+    model.wv.similarity('中国', '美国')
 
     # model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
     # sentences = Mysentences(file_path)
@@ -85,7 +89,41 @@ def use_model():
     # corpus_tfidf = model2[corpus]
     # print(corpus_tfidf)
 
+
+def map_online_to_icd():
+    '''
+    线上ICD到标准ICD10的映射
+    '''
+    icd = '/Users/yaochao/Desktop/work_files/work2/ICD.xls'
+    online = '/Users/yaochao/Desktop/work_files/work2/online.csv'
+    # csv
+    csv_reader = csv.reader(open(online, 'r', encoding='utf-8'))
+    online_mc = [x[0] for x in csv_reader][1:]
+    # xlrd
+    icd = xlrd.open_workbook(icd)
+    sheet = icd.sheet_by_index(1)
+    icd_mc = sheet.col_values(1)[1:]
+
+    # 加载word2vec模型
+    model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
+    result = []
+    for online_word in online_mc[:1]:
+        sub_result = []
+        for icd_word in icd_mc:
+            try:
+                similarity = model.wv.similarity(online_word, icd_word)
+                sub_result.append((similarity, icd_word))
+            except Exception as e:
+                pass
+
+        # sub_result 排序
+        sub_result.sort(key=lambda x: x[0], reverse=True)
+        result.append((sub_result, online_word))
+    print(result)
+
+
 if __name__ == '__main__':
     # train_word2vec()
-    use_model()
+    map_online_to_icd()
+    # use_model()
     # train_tf_idf()
