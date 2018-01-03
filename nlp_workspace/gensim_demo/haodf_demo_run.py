@@ -79,8 +79,8 @@ def train_tf_idf():
 
 def use_model():
     model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
-    print(model.wv.most_similar('你好', topn=50))
-    # print(model.wv.similarity('中国', '山东'))
+    print(model.wv.most_similar('恶性贫血'))
+    model.wv.similarity('中国', '美国')
 
     # model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
     # sentences = Mysentences(file_path)
@@ -107,7 +107,7 @@ def map_online_to_icd():
     # 加载word2vec模型
     model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
     result = []
-    for online_word in online_mc[:1000]:
+    for online_word in online_mc[:1]:
         sub_result = []
         for icd_word in icd_mc:
             try:
@@ -118,15 +118,12 @@ def map_online_to_icd():
 
         # sub_result 排序
         sub_result.sort(key=lambda x: x[0], reverse=True)
-        result.append({online_word: sub_result[:3]})
-
-    # 输出
-    for i in result:
-        print(i)
+        result.append((sub_result, online_word))
+    print(result)
 
 
 if __name__ == '__main__':
-    # train_word2vec()
+    train_word2vec()
     # map_online_to_icd()
-    use_model()
+    # use_model()
     # train_tf_idf()
