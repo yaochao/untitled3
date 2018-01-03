@@ -16,11 +16,11 @@ class AbaikespiderSpider(scrapy.Spider):
 
     def parse(self, response):
         url = response.url
-        keyword = url.split('/w/')[1]
+        word = url.split('/w/')[1]
         text = get_text(response.text)
         yield {
             'url': url,
-            'keyword': unquote(keyword),
+            'word': unquote(word),
             'text': text
         }
         # 其他的词语

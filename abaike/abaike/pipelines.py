@@ -8,12 +8,16 @@
 import pymysql
 
 mysql_config = {
-    'host': '127.0.0.1',
-    'port': 3306,
-    'user': 'root',
-    'db': 'abaike',
+    # 'host': '127.0.0.1',
+    'host': '172.31.48.29',
+    'port': 8096,
+    'user': 'spider',
+    'password': '123456',
+    'db': 'spider',
     'charset': 'utf8',
-    'cursorclass': 'pymysql.cursors.DictCursor',
+
+
+    'cursorclass': pymysql.cursors.DictCursor,
 }
 
 
@@ -24,8 +28,8 @@ class AbaikePipeline(object):
         self.count = 0
 
     def process_item(self, item, spider):
-        sql = "INSERT INTO item (word, text, url) VALUES (%s, %s, %s)"
-        self.cursor.execute(sql, item)
+        sql = "INSERT INTO abaike_item (word, text, url) VALUES (%s, %s, %s)"
+        self.cursor.execute(sql, (item['word'], item['text'], item['url']))
         self.conn.commit()
         # if self.count >= 100:
         #     self.conn.commit()
