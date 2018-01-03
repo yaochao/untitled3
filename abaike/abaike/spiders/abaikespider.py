@@ -3,10 +3,16 @@ import scrapy
 from ..misc.utils import get_text
 from urllib.parse import unquote, urljoin
 
+
 class AbaikespiderSpider(scrapy.Spider):
     name = 'abaike'
     allowed_domains = ['www.a-hospital.com']
     start_urls = ['http://www.a-hospital.com/w/%E7%94%B5%E5%AD%90%E6%98%BE%E5%BE%AE%E9%95%9C']
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'abaike.pipelines.AbaikePipeline': 300,
+        },
+    }
 
     def parse(self, response):
         url = response.url
@@ -26,4 +32,3 @@ class AbaikespiderSpider(scrapy.Spider):
                 continue
             request = scrapy.Request(url, callback=self.parse)
             yield request
-
