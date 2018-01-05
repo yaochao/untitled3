@@ -41,7 +41,7 @@ def test_ip(schema, ip, port):
             if response.json()['origin'] == ip:
                 return [schema, ip, port]
     except Exception as e:
-        print(e)
+        # print(e)
         return None
 
 
