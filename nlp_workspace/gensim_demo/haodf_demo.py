@@ -18,8 +18,8 @@ import xlrd
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-userdict_path='/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
-stopwords_path='/Users/yaochao/python/datasets/user_dicts/stopwords5.txt'
+userdict_path = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
+stopwords_path = '/Users/yaochao/python/datasets/user_dicts/stopwords5.txt'
 file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.word2vec_model'
 # file_path = '/Users/yaochao/python/datasets/abaike_10000.word2vec_model'
 mysql_config = {
@@ -82,7 +82,7 @@ class Mysentences_file(object):
 
 
 class Mysentences_mysql(object):
-    def __init__(self ):
+    def __init__(self):
         jieba.load_userdict(userdict_path)
         self.conn = pymysql.connect(**mysql_config)
         self.cursor = self.conn.cursor()
@@ -122,7 +122,7 @@ def train_word2vec():
 
 def train_tf_idf():
     start = time.time()
-    sentences = Mysentences(file_path)
+    sentences = Mysentences_file(file_path)
     dictionary = gensim.corpora.Dictionary(sentences)
     corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
     model = gensim.models.TfidfModel(corpus)
@@ -165,7 +165,7 @@ def stopwordslist(filepath):
 def model_mean(*args):
     # if len(args) != 0:
     #     return sum(args) / len(args)
-    return np.mean(args,axis=0)
+    return np.mean(args, axis=0)
 
 
 def get_word_vec(word, model):
@@ -202,15 +202,12 @@ def map_online_to_icd():
     '''
     线上ICD到标准ICD10的映射
     '''
-    icd = '/Users/yaochao/Desktop/work_files/work2/ICD.xls'
-    online = '/Users/yaochao/Desktop/work_files/work2/online.csv'
-    # online
-    csv_reader = csv.reader(open(online, 'r', encoding='utf-8'))
-    online_words = [x[0] for x in csv_reader][1:]
-    # icd10标准表
-    icd = xlrd.open_workbook(icd)
-    sheet = icd.sheet_by_index(1)
-    icd_words = sheet.col_values(1)[1:]
+    path = '/Users/yaochao/python/datasets/online_icd/remain_online_icd.xls'
+    wb = xlrd.open_workbook(path)
+    sheet_online = wb.sheet_by_index(0)
+    sheet_icd = wb.sheet_by_index(1)
+    online_words = sheet_online.col_values(0)[1:]
+    icd_words = sheet_icd.col_values(0)[1:]
 
     # 加载word2vec模型
     model = gensim.models.Word2Vec.load(file_path)
@@ -233,6 +230,7 @@ def map_online_to_icd():
     # 输出
     return result
 
+
 def use_model():
     model = gensim.models.Word2Vec.load(file_path)
     # print('你好' in model)
@@ -240,7 +238,8 @@ def use_model():
     print(model.wv.similarity('中国', '北京'))
     print(cos_similarity(model['中国'], model['北京']))
 
+
 if __name__ == '__main__':
     # train_word2vec()
-    # map_online_to_icd()
-    use_model()
+    map_online_to_icd()
+    # use_model()

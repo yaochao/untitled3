@@ -33,29 +33,14 @@ for x in range(len(icd_mc)):
 
 # xlwt
 workbook = xlwt.Workbook(encoding='utf-8')
-sheet1 = workbook.add_sheet('sheet1')
-sheet1.write(0, 0, 'v6.01中文名称')
-sheet1.write(0, 1, 'v6.01编码')
-sheet1.write(0, 2, '线上库中文名称')
-sheet1.write(0, 3, '线上库编码')
-sheet1.write(0, 4, '1.完全一致 2.编码不一致 3.都不一致')
+wt_sheet1 = workbook.add_sheet('online')
+wt_sheet2 = workbook.add_sheet('icd')
 
 # online和icd的名称和编码都相同
 same_mc_same_bm = []
 for index1, i in enumerate(online):
     for ii in icd:
         if i == ii:
-            ol_mc = i[0]
-            ol_bm = i[1]
-            icd_mc = ii[0]
-            icd_bm = ii[1]
-            row = len(same_mc_same_bm) + 1
-            sheet1.write(row, 0, icd_mc)
-            sheet1.write(row, 1, icd_bm)
-            sheet1.write(row, 2, ol_mc)
-            sheet1.write(row, 3, ol_bm)
-            sheet1.write(row, 4, 1)
-            # print(i, ii, ' same_mc_same_bm')
             same_mc_same_bm.append(i)
 
 # online和icd的名称相同，编码不相同
@@ -72,16 +57,9 @@ for index, i in enumerate(online):
         icd_mc = ii[0]
         icd_bm = ii[1]
         if ol_mc == icd_mc and ol_bm != icd_bm:
-            row = len(same_mc_same_bm) + 1 + len(same_mc_not_bm) + 1
-            sheet1.write(row, 0, icd_mc)
-            sheet1.write(row, 1, icd_bm)
-            sheet1.write(row, 2, ol_mc)
-            sheet1.write(row, 3, ol_bm)
-            sheet1.write(row, 4, 2)
-            # print(i, ii, ' same_mc_not_bm')
             same_mc_not_bm.append([i, ii])
 
-# online和icd的名称不相同，编码不相同，通过编辑距离，给online找一个最相近的IDC的名称。
+# online和icd的名称不相同，编码不相同
 same_mc_not_bm_online = [x[0] for x in same_mc_not_bm]
 same_mc_not_bm_icd = [x[1] for x in same_mc_not_bm]
 for i in same_mc_not_bm_online:
@@ -94,27 +72,27 @@ for i in same_mc_not_bm_icd:
         print(i, 'not in icd')
         continue
     icd.remove(i)
-row = len(same_mc_same_bm) + 1 + len(same_mc_not_bm) + 1 + 4
-sheet1.write(row, 0, '线上库中文名称')
-sheet1.write(row, 1, '身体部位')
-sheet1.write(row, 2, '剩下的字')
-sheet1.write(row, 3, '疾病名称')
-sheet1.write(row, 4, '剩下的字')
 
-for index, i in enumerate(online):
-    ol_mc = i[0]
-    ol_bm = i[1]
-    word, bodys, tmp_word, illnesses, tmp_word2 = get_body_illness2(ol_mc)
+# with open('remain_online.txt', 'w', encoding='utf-8') as f:
+#     f.writelines([x[0] + '\n' for x in online])
+#
+# with open('remain_icd.txt', 'w', encoding='utf-8') as f:
+#     f.writelines([x[0] + '\n' for x in icd])
 
-    row1 = row + index + 1
+wt_sheet1.write(0, 0, 'online_name')
+wt_sheet1.write(0, 1, 'online_code')
+for idx, i in enumerate(online):
+    name = i[0]
+    code = i[1]
+    wt_sheet1.write(idx + 1, 0, name)
+    wt_sheet1.write(idx + 1, 1, code)
 
-    sheet1.write(row1, 0, word)
-    sheet1.write(row1, 1, bodys)
-    sheet1.write(row1, 2, tmp_word)
-    sheet1.write(row1, 3, illnesses)
-    sheet1.write(row1, 4, tmp_word2)
+wt_sheet2.write(0, 0, 'icd_name')
+wt_sheet2.write(0, 1, 'icd_code')
+for idx2, ii in enumerate(icd):
+    name = ii[0]
+    code = ii[1]
+    wt_sheet2.write(idx2 + 1, 0, name)
+    wt_sheet2.write(idx2 + 1, 1, code)
 
-workbook.save('fenci_demo.xls')
-
-used_time = time.time() - start_time
-print('used_time: {}'.format(used_time))
+workbook.save('remain_online_icd.xls')
