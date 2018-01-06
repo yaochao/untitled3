@@ -18,9 +18,10 @@ import xlrd
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-# jieba.load_userdict(f='/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt')
-# file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv'
-file_path = '/Users/yaochao/python/datasets/abaike_10000.word2vec_model'
+userdict_path='/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
+stopwords_path='/Users/yaochao/python/datasets/user_dicts/stopwords5.txt'
+file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.word2vec_model'
+# file_path = '/Users/yaochao/python/datasets/abaike_10000.word2vec_model'
 mysql_config = {
     'host': '127.0.0.1',
     # 'host': '172.31.48.29',
@@ -62,24 +63,32 @@ def preprocessing():
 
 
 # NLP MAIN
-class Mysentences(object):
+class Mysentences_file(object):
     def __init__(self, filename):
+        jieba.load_userdict(userdict_path)
         self.filename = filename
+        self.stopwords = stopwordslist(stopwords_path)
 
     def __iter__(self):
         with open(self.filename, encoding='utf-8') as f:
             f_csv = csv.reader(f)
             for idx, sentence in f_csv:
-                yield list(jieba.cut(sentence))
+                words = list(jieba.cut(sentence))
+                words2 = []
+                for word in words:
+                    if word not in self.stopwords:
+                        words2.append(word)
+                yield words2
 
 
 class Mysentences_mysql(object):
-    def __init__(self, ):
+    def __init__(self ):
+        jieba.load_userdict(userdict_path)
         self.conn = pymysql.connect(**mysql_config)
         self.cursor = self.conn.cursor()
         sql = 'SELECT `text` FROM abaike_item WHERE word NOT IN (SELECT word FROM abaike_item WHERE word LIKE "%:%")'
         self.cursor.execute(sql)
-        self.stopwords = stopwordslist(filepath='/Users/yaochao/python/datasets/user_dicts/stopwords.txt')
+        self.stopwords = stopwordslist(stopwords_path)
 
     def __iter__(self):
         while True:
@@ -106,7 +115,7 @@ class Mysentences_mysql(object):
 def train_word2vec():
     start = time.time()
     sentences = Mysentences_mysql()
-    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=3, workers=10)
+    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=3)
     model.save(file_path)
     print('cost time: {}'.format(time.time() - start))
 
@@ -135,12 +144,15 @@ def pearsonSimilar(inA, inB):
 
 # 余弦相似度
 def cos_similarity(inA, inB):
-    inA = np.mat(inA)
-    inB = np.mat(inB)
-    num = float(inA * inB.T)
-    denom = la.norm(inA) * la.norm(inB)
-    # return 0.5 + 0.5 * (num / denom) # 归一
-    return num / denom
+    try:
+        inA = np.mat(inA)
+        inB = np.mat(inB)
+        num = float(inA * inB.T)
+        denom = la.norm(inA) * la.norm(inB)
+        # return 0.5 + 0.5 * (num / denom) # 归一
+        return num / denom
+    except:
+        return -1
 
 
 # 创建停用词list
@@ -149,20 +161,41 @@ def stopwordslist(filepath):
     return stopwords
 
 
-def use_model():
-    model = gensim.models.Word2Vec.load(file_path)
-    # print(model.wv.most_similar('布氏菌病', topn=50))
-    # print((model['中国']+model['北京'])/2)
-    # model2 = gensim.models.TfidfModel.load(file_path + '.tfidf_model')
-    # sentences = Mysentences(file_path)
-    # dictionary = gensim.corpora.Dictionary(sentences)
-    # corpus = [dictionary.doc2bow(sentence) for sentence in sentences]
-    # corpus_tfidf = model2[corpus]
-    # print(corpus_tfidf)
+# N个ndarray求平均值
+def model_mean(*args):
+    # if len(args) != 0:
+    #     return sum(args) / len(args)
+    return np.mean(args,axis=0)
 
-    print(cos_similarity(model['中国'], model['山东']))
-    print(cos_similarity(np.mat(model['中国']), np.mat(model['山东'])))
-    print(model.wv.most_similarity('中国'))
+
+def get_word_vec(word, model):
+    '''
+    通过切割word为多个小word，从而找到小word在model的向量表示，进而求平均值，得到大word的向量表示。
+    :param word: 待拆分的word
+    :param model: word2vec 模型
+    :return: word对应model的向量
+    '''
+    tmp = list()
+    word_cut = jieba.cut(word)
+    for i in word_cut:
+        if i in model:
+            vec = model[i]
+            tmp.append(vec)
+    return word, model_mean(*tmp)
+
+
+def get_words_vecs(words, model):
+    '''
+    得到一组词的向量组
+    :param words: 一组词
+    :param model: word2vec模型
+    :return: 一组词对应的向量组
+    '''
+    words_vecs = list()
+    for word in words:
+        vec = get_word_vec(word, model)
+        words_vecs.append(vec)
+    return words_vecs
 
 
 def map_online_to_icd():
@@ -171,34 +204,41 @@ def map_online_to_icd():
     '''
     icd = '/Users/yaochao/Desktop/work_files/work2/ICD.xls'
     online = '/Users/yaochao/Desktop/work_files/work2/online.csv'
-    # csv
+    # online
     csv_reader = csv.reader(open(online, 'r', encoding='utf-8'))
-    online_mc = [x[0] for x in csv_reader][1:]
-    # xlrd
+    online_words = [x[0] for x in csv_reader][1:]
+    # icd10标准表
     icd = xlrd.open_workbook(icd)
     sheet = icd.sheet_by_index(1)
-    icd_mc = sheet.col_values(1)[1:]
+    icd_words = sheet.col_values(1)[1:]
 
     # 加载word2vec模型
-    model = gensim.models.Word2Vec.load(file_path + '.word2vec_model')
+    model = gensim.models.Word2Vec.load(file_path)
     result = []
-    for online_word in online_mc[:100]:
-        sub_result = []
-        for icd_word in icd_mc:
-            try:
-                similarity = model.wv.similarity(online_word, icd_word)
-                sub_result.append((similarity, icd_word))
-            except Exception as e:
-                pass
-
-        # sub_result 排序
-        sub_result.sort(key=lambda x: x[0], reverse=True)
-        result.append({online_word: sub_result[:3]})
+    # 计算出所有ICD标准表的词的向量（求平均数）
+    icd_vecs = get_words_vecs(icd_words, model)
+    online_vecs = get_words_vecs(online_words, model)
+    # 计算余弦相似度
+    for ol_word, ol_vec in online_vecs:
+        one_result = []
+        for icd_word, icd_vec in icd_vecs:
+            similarity = cos_similarity(ol_vec, icd_vec)
+            one_result.append((icd_word, similarity))
+        # sub_result 降序排序
+        one_result.sort(key=lambda x: x[1], reverse=True)
+        one_dict = {ol_word: one_result[:5]}
+        print(one_dict)
+        result.append(one_dict)
 
     # 输出
-    for i in result:
-        print(i)
+    return result
 
+def use_model():
+    model = gensim.models.Word2Vec.load(file_path)
+    # print('你好' in model)
+    # print(model.wv.most_similar('', topn=30))
+    print(model.wv.similarity('中国', '北京'))
+    print(cos_similarity(model['中国'], model['北京']))
 
 if __name__ == '__main__':
     # train_word2vec()
