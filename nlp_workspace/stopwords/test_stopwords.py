@@ -5,6 +5,7 @@ import csv
 import jieba
 from functools import reduce
 import xlrd
+import csv
 
 path = '/Users/yaochao/python/datasets/stopwords/'
 icd = '/Users/yaochao/Desktop/work_files/work2/ICD.xls'
@@ -38,9 +39,32 @@ def test_stopwords():
 
     aa = []
     for i in set(a):
-        aa.append((a.count(i),i))
-    aa.sort(key=lambda x:x[0],reverse=True)
+        aa.append([i, a.count(i)])
+    aa.sort(key=lambda x:x[1],reverse=True)
     print(aa)
+
+    with open('stopwords_count3.csv', 'w', encoding='utf-8') as f:
+        csv_w = csv.writer(f)
+        csv_w.writerow(('word', 'count', 'word1', 'word2', 'word3', 'word4', 'word5'))
+        # [csv_w.writerow(i) for i in aa]
+        for i in aa:
+            word = i[0]
+            tmp = set()
+            for ii in icd_words:
+                ii_cut = jieba.cut(ii)
+                if word in ii_cut:
+                    tmp.add(ii)
+                    if len(tmp) >= 5:
+                        break
+            if len(tmp) < 5:
+                for iii in online_words:
+                    iii_cut = jieba.cut(iii)
+                    if word in iii_cut:
+                        tmp.add(iii)
+                        if len(tmp) >= 5:
+                            break
+            i.extend(list(tmp))
+            csv_w.writerow(i)
 
 
 if __name__ == '__main__':

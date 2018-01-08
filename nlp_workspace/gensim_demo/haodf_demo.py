@@ -235,12 +235,12 @@ def map_online_to_icd():
 def use_model():
     model = gensim.models.Word2Vec.load(file_path2)
     # print('你好' in model)
-    print(model.wv.most_similar('月经', topn=30))
+    print(model.wv.most_similar('上感', topn=30))
     # print(model.wv.similarity('中国', '北京'))
     # print(cos_similarity(model['中国'], model['北京']))
 
 
 if __name__ == '__main__':
     # train_word2vec()
-    map_online_to_icd()
-    # use_model()
+    # map_online_to_icd()
+    use_model()
