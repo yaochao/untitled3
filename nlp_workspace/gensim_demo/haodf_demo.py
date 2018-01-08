@@ -21,6 +21,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 userdict_path = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
 stopwords_path = '/Users/yaochao/python/datasets/user_dicts/stopwords5.txt'
 file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.word2vec_model'
+file_path2 = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.w2v_model'
 # file_path = '/Users/yaochao/python/datasets/abaike_10000.word2vec_model'
 mysql_config = {
     'host': '127.0.0.1',
@@ -232,11 +233,11 @@ def map_online_to_icd():
 
 
 def use_model():
-    model = gensim.models.Word2Vec.load(file_path)
+    model = gensim.models.Word2Vec.load(file_path2)
     # print('你好' in model)
-    # print(model.wv.most_similar('', topn=30))
-    print(model.wv.similarity('中国', '北京'))
-    print(cos_similarity(model['中国'], model['北京']))
+    print(model.wv.most_similar('月经', topn=30))
+    # print(model.wv.similarity('中国', '北京'))
+    # print(cos_similarity(model['中国'], model['北京']))
 
 
 if __name__ == '__main__':
