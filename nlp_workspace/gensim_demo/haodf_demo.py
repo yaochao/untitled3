@@ -18,11 +18,15 @@ import xlrd
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-userdict_path = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
-stopwords_path = '/Users/yaochao/python/datasets/user_dicts/stopwords5.txt'
-file_path = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.word2vec_model'
-file_path2 = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.w2v_model'
-# file_path = '/Users/yaochao/python/datasets/abaike_10000.word2vec_model'
+base_path = '/Users/yaochao/python/datasets/'
+userdict_path = base_path + 'user_dicts/online_and_icd_and_mesh.txt'
+stopwords_path = base_path + 'user_dicts/stopwords5.txt'
+file_path = base_path + 'haodf_chats_detail_1000W_pre.csv.word2vec_model'
+file_path2 = base_path + 'haodf_chats_detail_1000W_pre.csv.w2v_model'
+file_path3 = base_path + 'downloads/cn.cbow.bin'
+file_path4 = base_path + 'downloads/cn.skipgram.bin'
+file_path5 = base_path + 'downloads/Twitter_word_embeddings_CBOW.csv'
+# file_path = base_path + 'abaike_10000.word2vec_model'
 mysql_config = {
     'host': '127.0.0.1',
     # 'host': '172.31.48.29',
@@ -203,7 +207,7 @@ def map_online_to_icd():
     '''
     线上ICD到标准ICD10的映射
     '''
-    path = '/Users/yaochao/python/datasets/online_icd/remain_online_icd.xls'
+    path = base_path + 'online_icd/remain_online_icd.xls'
     wb = xlrd.open_workbook(path)
     sheet_online = wb.sheet_by_index(0)
     sheet_icd = wb.sheet_by_index(1)
@@ -233,9 +237,14 @@ def map_online_to_icd():
 
 
 def use_model():
-    model = gensim.models.Word2Vec.load(file_path2)
+    # load the original Google word2vec model, use the KeyedVectors.load_word2vec_format()
+    # model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path3, binary=True, encoding='utf-8', unicode_errors='ignore')
+    # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path4, binary=True, encoding='utf-8', unicode_errors='ignore')
+    model = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path5, binary=False, encoding='utf-8', unicode_errors='ignore')
+    # model = gensim.models.Word2Vec.load(file_path3)
     # print('你好' in model)
-    print(model.wv.most_similar('中午', topn=30, ))
+    word = 'hello'
+    print(model.wv.most_similar(word, topn=5, ))
     # print(model.wv.similarity('中国', '北京'))
     # print(cos_similarity(model['中国'], model['北京']))
 

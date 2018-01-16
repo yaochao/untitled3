@@ -11,6 +11,8 @@ That's all.
 ##########################################
 import sys
 
+import re
+
 if sys.version_info[0] >= 3:
     unicode = str
 
@@ -35,10 +37,21 @@ def cut_sentence(text):
     sentences = []
     line = ''
     for char in text:
-        if char in '。！？':
+        if char in '。！？.!?':
             line += char
             sentences.append(line)
             line = ''
         else:
             line += char
+    return sentences
+
+
+def cut_sentence_re(text):
+    '''
+    中文分句
+    :param text:要分句的文本
+    :return:分句列表
+    '''
+    SPLIT_SENTENCES = re.compile("[。！？.!?]")
+    sentences = SPLIT_SENTENCES.split(text)
     return sentences
