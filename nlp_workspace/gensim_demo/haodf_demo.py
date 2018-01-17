@@ -214,31 +214,39 @@ def map_online_to_icd():
     online_words = sheet_online.col_values(0)[1:]
     icd_words = sheet_icd.col_values(0)[1:]
 
+    # 随机100个 online_word
+    import random
+    online_words_random = []
+    for i in range(100):
+        online_word = random.choice(online_words)
+        online_words_random.append(online_word)
+    print(len(set(online_words_random)))
+
+
     # 加载word2vec模型
-    model = gensim.models.Word2Vec.load(file_path)
+    model = gensim.models.Word2Vec.load(file_path_1000_stopwords)
     result = []
     # 计算出所有ICD标准表的词的向量（求平均数）
     icd_vecs = get_words_vecs(icd_words, model)
-    online_vecs = get_words_vecs(online_words, model)
+    online_vecs = get_words_vecs(online_words_random, model)
     # 计算余弦相似度
-    for ol_word, ol_vec in online_vecs:
+    for index, (ol_word, ol_vec) in enumerate(online_vecs):
         one_result = []
         for icd_word, icd_vec in icd_vecs:
             similarity = cos_similarity(ol_vec, icd_vec)
             one_result.append((icd_word, similarity))
         # sub_result 降序排序
         one_result.sort(key=lambda x: x[1], reverse=True)
-        one_dict = {ol_word: one_result[:5]}
-        print(one_dict)
+        one_dict = (ol_word, one_result[:5])
+        print(index, one_dict)
         result.append(one_dict)
-
-    # 输出
     return result
 
 
 def use_model():
     # load the original Google word2vec model, use the KeyedVectors.load_word2vec_format()
-    model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True, encoding='utf-8', unicode_errors='ignore')
+    model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True,
+                                                                 encoding='utf-8', unicode_errors='ignore')
     # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
     model_100 = gensim.models.Word2Vec.load(file_path_100)
     model_1000 = gensim.models.Word2Vec.load(file_path_1000)
@@ -253,7 +261,28 @@ def use_model():
     # print(cos_similarity(model['中国'], model['北京']))
 
 
+def main():
+    result = map_online_to_icd()
+    result2 = []
+    for i in result:
+        a = []
+        ol_word = i[0]
+        a.append(ol_word)
+        result_5 = i[1]
+        for ii in result_5:
+            icd = ii[0]
+            rate = ii[1]
+            a.append(icd)
+            # a.append(rate)
+        result2.append(a)
+
+
+    # 输出到csv
+    with open('online_to_icd_random100.csv', 'w', encoding='utf-8') as f:
+        f_csv = csv.writer(f)
+        f_csv.writerow(('online', 'icd1', 'icd2', 'icd3', 'icd4', 'icd5'))
+        f_csv.writerows(result2)
+
+
 if __name__ == '__main__':
-    # train_word2vec()
-    # map_online_to_icd()
-    use_model()
+    main()
