@@ -264,7 +264,7 @@ def use_model():
 def main():
     result = map_online_to_icd()
     result2 = []
-    for i in result:
+    for i in result:    
         a = []
         ol_word = i[0]
         a.append(ol_word)
