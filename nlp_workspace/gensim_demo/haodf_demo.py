@@ -26,7 +26,7 @@ file_path_1000 = base_path + 'haodf_chats_detail_1000W_pre.csv.word2vec_model'
 file_path_1000_stopwords = base_path + 'haodf_chats_detail_1000W_pre.csv.w2v_model'
 file_path_baike_cbow = base_path + 'downloads/cn.cbow.bin'
 file_path_baike_skipgram = base_path + 'downloads/cn.skipgram.bin'
-# file_path = base_path + 'abaike_10000.word2vec_model'
+file_path = base_path + 'abaike_10000.word2vec_model'
 mysql_config = {
     'host': '127.0.0.1',
     # 'host': '172.31.48.29',

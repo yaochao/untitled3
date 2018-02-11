@@ -15,7 +15,7 @@ def getASCP():
         AS = '479BB4B7254C150'
         CP = '7E0AC8874BB0985'
         return AS, CP
-    n = i[0: 5]
+    n = i[0:5]
     a = i[-5:]
     s = ''
     r = ''
@@ -25,3 +25,6 @@ def getASCP():
     AS = 'A1' + s + e[-3:]
     CP = e[0: 3] + r + 'E1'
     return AS, CP
+
+
+print(getASCP())
