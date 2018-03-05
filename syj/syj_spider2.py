@@ -7,11 +7,11 @@ import requests
 import pymysql
 
 mysql_conf = {
-    'host': '47.93.232.8',
+    'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',
-    'password': 'W$udzpgobz#4evVs',
-    'db': 'yaochao',
+    'password': '',
+    'db': 'work',
     'charset': 'utf8',
 }
 conn = pymysql.Connect(**mysql_conf)
@@ -27,14 +27,6 @@ query_list_url_gc = 'http://appcfda.drugwebcn.com/datasearch/QueryList?tableId=2
 query_list_url_jk = 'http://appcfda.drugwebcn.com/datasearch/QueryList?tableId=36&pageIndex=1&pageSize=4089'  # 进口list
 query_record_url_gc = 'http://appcfda.drugwebcn.com/datasearch/QueryRecord?tableId=25&searchF=ID&searchK='  # 国产详情
 query_record_url_jk = 'http://appcfda.drugwebcn.com/datasearch/QueryRecord?tableId=36&searchF=ID&searchK='  # 进口详情
-mysql_conf = {
-    'host': '47.93.232.8',
-    'port': 3306,
-    'user': 'root',
-    'password': 'W$udzpgobz#4evVs',
-    'db': 'yaochao',
-    'charset': 'utf8',
-}
 
 
 def get_list():
@@ -61,6 +53,24 @@ def get_detail_main():
         ID = item['ID']
         get_detail(ID, index)
 
+def get_detail_main2():
+    sql = 'SELECT ID FROM SYJ_GCYP_DETAIL'
+    sql2 = 'SELECT ID FROM SYJ_GCYP_LIST'
+    cursor.execute(sql)
+    r = cursor.fetchall()
+    print(len(r))
+    cursor.execute(sql2)
+    r2 = cursor.fetchall()
+    print(len(r2))
+    # diff_id = []
+    # for index, i in enumerate(r):
+    #     print(index)
+    #     if i not in r2:
+    #         diff_id.append(i)
+    # print(diff_id)
+
+
+
 
 def get_detail(ID, index):
     proxies = {}
@@ -79,4 +89,4 @@ def get_detail(ID, index):
 
 
 if __name__ == '__main__':
-    get_detail_main()
+    get_detail_main2()
