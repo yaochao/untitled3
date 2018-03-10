@@ -36,6 +36,7 @@ def get_all_values(f, sheet, index):
 
 
 col_values = get_all_values(f, 0, 0)
+col_values = [str(x).strip() for x in col_values]
 
 
 def get_all_split_name():
@@ -70,23 +71,22 @@ def get_split_name(name):
             return names
 
 
-def get_all_split_name2(name):
+def get_all_split_name2():
     '''
     单独的某个分割符的所有结果
-    :param name:
     :return:
     '''
     result = []
     for s in symbols_re:
         for i in col_values:
-            result = re.findall(s, name)
+            result = re.findall(s, i)
             if result:
                 flag = result[0]
-                names = name.split(flag)
+                names = i.split(flag)
                 names.insert(0, flag)
                 names.insert(0, i)
                 result.append(names)
-                break
+                col_values.remove(i)
     return result
 
 
@@ -98,7 +98,7 @@ def write_to_xls(out_path='out.xls'):
     '''
     book = xlwt.Workbook(encoding='utf8')
     sheet1 = book.add_sheet(sheetname='sheet1')
-    r = get_all_split_name()
+    r = get_all_split_name2()
     # 写表头
     sheet1.write(0, 0, '原诊断名称')
     sheet1.write(0, 1, '分割符')
