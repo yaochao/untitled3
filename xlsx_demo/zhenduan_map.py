@@ -37,6 +37,10 @@ def get_all_values(f, sheet, index):
 
 col_values = get_all_values(f, 0, 0)
 col_values = [str(x).strip() for x in col_values]
+col_values = list(set(col_values))
+
+c = get_all_values('诊断名称处理结果1.xls', 0, 0)
+c2 = get_all_values('out.xls', 0, 0)
 
 
 def get_all_split_name():
@@ -51,8 +55,10 @@ def get_all_split_name():
         if names:
             r.append(names)
             names.insert(0, i)
-        else:
-            r.append([i])
+        # else:
+        #     r.append([i])
+    # 对r进行排序
+    r.sort(key=lambda x:x[1])
     return r
 
 
@@ -79,15 +85,15 @@ def get_all_split_name2():
     result = []
     for s in symbols_re:
         for i in col_values:
-            result = re.findall(s, i)
-            if result:
-                flag = result[0]
+            r = re.findall(s, i)
+            if r:
+                flag = r[0]
                 names = i.split(flag)
                 names.insert(0, flag)
                 names.insert(0, i)
                 result.append(names)
-                col_values.remove(i)
     return result
+
 
 
 def write_to_xls(out_path='out.xls'):
@@ -98,7 +104,7 @@ def write_to_xls(out_path='out.xls'):
     '''
     book = xlwt.Workbook(encoding='utf8')
     sheet1 = book.add_sheet(sheetname='sheet1')
-    r = get_all_split_name2()
+    r = get_all_split_name()
     # 写表头
     sheet1.write(0, 0, '原诊断名称')
     sheet1.write(0, 1, '分割符')
