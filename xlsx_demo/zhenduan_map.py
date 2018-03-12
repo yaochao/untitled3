@@ -6,8 +6,10 @@
 import xlrd
 import xlwt
 import re
+import csv
 
 f = '/Users/yaochao/Downloads/吉林_his_诊断.xlsx'
+online_f = '/Users/yaochao/python/datasets/online_icd/online.csv'
 symbols = ['.', '-', '和', '，', ',', '、', '/', ' ', '或', '[', '伴']
 
 symbols_re = [
@@ -28,6 +30,14 @@ symbols_re = [
 ]
 
 
+def get_all_values_csv(file_path):
+    with open(file_path, encoding='utf-8') as f:
+        csv_f = csv.reader(f)
+        csv_header = next(csv_f)
+        csv_values = list(csv_f)
+        return csv_values
+
+
 def get_all_values(f, sheet, index):
     hook = xlrd.open_workbook(filename=f)
     sheet = hook.sheet_by_index(sheet)
@@ -38,9 +48,6 @@ def get_all_values(f, sheet, index):
 col_values = get_all_values(f, 0, 0)
 col_values = [str(x).strip() for x in col_values]
 col_values = list(set(col_values))
-
-c = get_all_values('诊断名称处理结果1.xls', 0, 0)
-c2 = get_all_values('out.xls', 0, 0)
 
 
 def get_all_split_name():
@@ -56,9 +63,9 @@ def get_all_split_name():
             r.append(names)
             names.insert(0, i)
         # else:
-        #     r.append([i])
+        #     r.append([i, 'null'])
     # 对r进行排序
-    r.sort(key=lambda x:x[1])
+    r.sort(key=lambda x: x[1])
     return r
 
 
@@ -95,8 +102,20 @@ def get_all_split_name2():
     return result
 
 
+def is_in_online():
+    r = get_all_split_name()
+    r2 = get_all_values_csv(online_f)
+    r2 = [x[0] for x in r2]
+    for idx, i in enumerate(r):
+        if i[0] in r2:
+            i.insert(0, '1')
+        else:
+            i.insert(0, '0')
+    return r
 
-def write_to_xls(out_path='out.xls'):
+
+
+def write_to_xls(out_path='诊断名称处理结果_类型排序_是否在线上icd_2.xls'):
     '''
     写到xls中
     :param out_path: 输出路径
@@ -104,14 +123,16 @@ def write_to_xls(out_path='out.xls'):
     '''
     book = xlwt.Workbook(encoding='utf8')
     sheet1 = book.add_sheet(sheetname='sheet1')
-    r = get_all_split_name()
+    # r = get_all_split_name()
+    r = is_in_online()
     # 写表头
-    sheet1.write(0, 0, '原诊断名称')
-    sheet1.write(0, 1, '分割符')
-    sheet1.write(0, 2, '新1')
-    sheet1.write(0, 3, '新2')
-    sheet1.write(0, 4, '新3')
-    sheet1.write(0, 5, '新4')
+    sheet1.write(0, 0, '是否在线上ICD（0为否，1为是）')
+    sheet1.write(0, 1, '原诊断名称')
+    sheet1.write(0, 2, '分割符')
+    sheet1.write(0, 3, '新1')
+    sheet1.write(0, 4, '新2')
+    sheet1.write(0, 5, '新3')
+    sheet1.write(0, 6, '新4')
     # 循环写表内容
     for row, i in enumerate(r):
         for column, ii in enumerate(i):
