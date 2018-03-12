@@ -111,11 +111,13 @@ def is_in_online():
             i.insert(0, '1')
         else:
             i.insert(0, '0')
+    # 根据0、1进行排序
+    r.sort(key=lambda x:x[0])
     return r
 
 
 
-def write_to_xls(out_path='诊断名称处理结果_类型排序_是否在线上icd_2.xls'):
+def write_to_xls(out_path='诊断名称处理结果_类型排序_是否在线上icd_3.xls'):
     '''
     写到xls中
     :param out_path: 输出路径
