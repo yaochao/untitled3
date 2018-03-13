@@ -6,8 +6,11 @@
 import docx
 import os
 import re
+from execjs_demo.execjs_demo import exec_my_js
 
-base = '/Users/yaochao/work/说明书差异对比和提取/doc_handle1'
+base = '/Users/yaochao/work/说明书差异对比和提取'
+file1 = os.path.join(base, 'doc_handle1/【JYY编号1】硝苯地平控释片说明书 OCR版-质控后.docx')
+file2 = os.path.join(base, 'doc_handle2/【JYY编号1】1.钙拮抗剂-1：[拜新同]硝苯地平控释片（done） 3.docx')
 files_name = os.listdir(base)
 
 
@@ -23,8 +26,15 @@ def get_all_texts():
     return texts
 
 
+def get_text(f):
+    doc = docx.Document(f)
+    paragraphs = doc.paragraphs
+    text = '\n'.join([x.text for x in paragraphs])
+    return text
+
+
 def get_all_titles(texts):
-    title_re = r'【.*?】'
+    title_re = r'【.+?】'
     title_re = re.compile(title_re)
     titles = []
     for t in texts:
@@ -33,30 +43,18 @@ def get_all_titles(texts):
     return set(titles)
 
 
-def get_all_parts(titles, text):
-    parts = []
-    for title in titles:
-        title_re = '(' + title + '[\s\S]+?)\n【.*?】[\n\t]'
-        part = re.findall(title_re, text)
-        parts.append(part)
-    return parts
-
-
-def get_all_parts2(text):
+def get_all_parts(text):
     title_re = '【(.+?)】([\n\w\W]+?)(?<![见和])(?=【|$)'
     parts = re.findall(title_re, text)
+
     return parts
 
 
 def main():
-    texts = get_all_texts()
-    titles = get_all_titles(texts)
-    for text in texts[0:1]:
-        parts = get_all_parts2(text)
-        for part in parts:
-            print(part[0])
-        # with open('example3.txt', 'w', encoding='utf-8') as f:
-        #     f.write(text)
+    text = get_text(file1)
+    parts = get_all_parts(text)
+    for part in parts:
+        print(part[0])
 
 
 if __name__ == '__main__':
