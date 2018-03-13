@@ -17,11 +17,15 @@ def exec_my_js(jsfile, func_str, *params):
     r = ctx.call(func_str, *params)
     return r
 
+def get_diff(text1, text2):
+    jsfile = '/Users/yaochao/python/PycharmProjects/untitled3/execjs_demo/my_diff.js'
+    diff = exec_my_js(jsfile, 'getDiff', text1, text2)
+    return diff
+
 
 def __main():
-    jsfile = 'my_diff.js'
-    r = exec_my_js(jsfile, 'getDiff', '你们好', '你好')
-    print(r)
+    diff = get_diff('你们好', '你好')
+    print(diff)
 
 
 if __name__ == '__main__':
