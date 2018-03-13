@@ -7,7 +7,7 @@ import docx
 import os
 import re
 
-base = '/Users/yaochao/test/doc_handle1'
+base = '/Users/yaochao/work/说明书差异对比和提取/doc_handle1'
 files_name = os.listdir(base)
 
 
@@ -36,19 +36,27 @@ def get_all_titles(texts):
 def get_all_parts(titles, text):
     parts = []
     for title in titles:
-        title_re = '(' + title + r'[\w\W]+?)\n【.*?】\n'
+        title_re = '(' + title + '[\s\S]+?)\n【.*?】[\n\t]'
         part = re.findall(title_re, text)
         parts.append(part)
+    return parts
+
+
+def get_all_parts2(text):
+    title_re = '【(.+?)】([\n\w\W]+?)(?<![见和])(?=【|$)'
+    parts = re.findall(title_re, text)
     return parts
 
 
 def main():
     texts = get_all_texts()
     titles = get_all_titles(texts)
-    for text in texts[:1]:
-        parts = get_all_parts(titles, text)
+    for text in texts[0:1]:
+        parts = get_all_parts2(text)
         for part in parts:
-            print(part)
+            print(part[0])
+        # with open('example3.txt', 'w', encoding='utf-8') as f:
+        #     f.write(text)
 
 
 if __name__ == '__main__':
