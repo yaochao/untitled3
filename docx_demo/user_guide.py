@@ -14,6 +14,8 @@ from docx.shared import RGBColor
 base = '/Users/yaochao/work/说明书差异对比和提取'
 file1 = os.path.join(base, 'doc_handle1/【JYY编号1】硝苯地平控释片说明书 OCR版-质控后.docx')
 file2 = os.path.join(base, 'doc_handle2/【JYY编号1】1.钙拮抗剂-1：[拜新同]硝苯地平控释片（done） 3.docx')
+file461 = os.path.join(base, 'doc_handle1/【JYY编号46】氯沙坦钾氢氯噻嗪片说明书 OCR版--质控后.docx')
+file462 = os.path.join(base, 'doc_handle2/【JYY编号46】氯沙坦钾氢氯噻嗪片.md')
 
 # 所有文件title的映射表
 titles_map = [['核准日期'],
@@ -59,6 +61,14 @@ def get_all_texts(dir_path):
             paragraphs = doc.paragraphs
             text = '\n'.join([x.text for x in paragraphs])
             texts.append(text)
+        if '.md' in f:
+            text = ''
+            parts = get_all_parts_md(f)
+            for i in parts:
+                title = '【'+i[0]+'】'
+                text += title
+                text += i[1]
+            texts.append(text)
     return texts
 
 
@@ -99,10 +109,32 @@ def get_titles():
 
 
 def get_all_parts(f):
+    '''
+    得到所有的title以及对应的content，(title, content)称为一个part
+    :param f:
+    :return:
+    '''
+    if '.docx' in f:
+        return get_all_parts_docx(f)
+    elif '.md' in f:
+        return get_all_parts_md(f)
+    else:
+        return ''
+
+def get_all_parts_docx(f):
     text = get_text(f)
     title_re = '【(.+?)】([\w\W]+?)(?<![见和])(?=【|$)'
     parts = re.findall(title_re, text)
     return parts
+
+def get_all_parts_md(f):
+    title_re = '## (.+?)\n([\w\W]+?)(?=##|$)'
+    with open(f, encoding='utf-8') as f:
+        text = f.read()
+        parts = re.findall(title_re, text)
+        return parts
+
+
 
 
 def title_unification(title):
@@ -229,8 +261,8 @@ def out_html(parts, out):
 
 
 def main():
-    parts = compare_two_files(file2, 'out.docx')
-    out_html(parts, out='file2_out.html')
+    parts = compare_two_files(file461, file462)
+    out_html(parts, out='out46.html')
 
 
 if __name__ == '__main__':
