@@ -14,18 +14,18 @@ from docx.shared import RGBColor
 base = '/Users/yaochao/work/说明书差异对比和提取'
 file1 = os.path.join(base, 'doc_handle1/【JYY编号1】硝苯地平控释片说明书 OCR版-质控后.docx')
 file2 = os.path.join(base, 'doc_handle2/【JYY编号1】1.钙拮抗剂-1：[拜新同]硝苯地平控释片（done） 3.docx')
-files_name = os.listdir(base)
 
 # 所有文件title的映射表
 titles_map = [['核准日期'], ['修改日期'], ['药品名称'], ['成份', '成 份'], ['适应症'], ['性状', '性 状'], ['规格', '规 格'], ['用法用量', '用法和用量'],
-              ['按照患者体重50 kg计算'], ['不良反应'], ['禁忌'], ['注意事项', '注意事 项'],
+              ['按照患者体重50kg计算', '按照患者体重50 kg计算'], ['不良反应'], ['禁忌'], ['注意事项', '注意事 项'],
               ['孕妇及哺乳期妇女用药', '孕妇与哺乳期妇女用药', '孕妇及晡乳期妇女用药', '孕妇和哺乳期妇女用药'], ['儿童用药'], ['老年用药', '老年患者用药'], ['药物相互作用'],
               ['药物过量'], ['临床试验'], ['药理毒理', '药物毒理'], ['药代动力学'], ['贮藏', '贮 藏', '贮   藏'], ['包装', '包 装'], ['有效期'], ['执行标准'],
-              ['批准文号'], ['生产企业'], ['进口分装企业'], ['进口药品注册证号'], ['热线']]
+              ['批准文号', '批准文号:'], ['生产企业'], ['进口分装企业'], ['进口药品注册证号'], ['热线']]
 
 
-def get_all_texts():
-    files = [os.path.join(base, x) for x in files_name]
+def get_all_texts(dir_path):
+    files_name = os.listdir(dir_path)
+    files = [os.path.join(dir_path, x) for x in files_name]
     texts = []
     for f in files:
         if '.docx' in f:
@@ -51,6 +51,24 @@ def get_all_titles(texts):
         r = re.findall(title_re, t)
         titles.extend(r)
     return set(titles)
+
+def get_titles():
+    '''
+    获取两个文件夹里面的所有docx文档的titles
+    :return: 打印出来的是两个文件夹里面的所有docx文档的titles不在titles_map里面的。
+    '''
+    texts = get_all_texts(dir_path='/Users/yaochao/work/说明书差异对比和提取/doc_handle1')
+    titles1 = get_all_titles(texts)
+
+    texts2 = get_all_texts(dir_path='/Users/yaochao/work/说明书差异对比和提取/doc_handle2')
+    titles2 = get_all_titles(texts2)
+    all_titles = titles1.union(titles2)
+    all_titles1 = []
+    for i in titles_map:
+        all_titles1 += i
+    for i in all_titles:
+        if i[1:][:-1] not in all_titles1:
+            print("'"+i[1:][:-1]+"'")
 
 
 def get_all_parts(f):
@@ -106,7 +124,15 @@ def compare_two_files(f1, f2):
             diff = get_diff(text1, text2)
             i.append(diff)
     # TODO 对parts1排序，按照要求的title的顺序
-    return parts1
+    new_parts1 = []
+    print(len(parts1))
+    for i in titles_map:
+        for ii in parts1:
+            if ii[1] == i[0]:
+                new_parts1.append(ii)
+                parts1.remove(ii)
+    print(parts1)
+    return new_parts1
 
 
 def get_RGBColor(diff_type):
@@ -138,8 +164,8 @@ def out_docx(parts):
 
 
 def get_HTMLColorText(type, text):
-    colortext = ['<font color=\'black\'>' + text + '</font>', '<font color=\'green\'>' + text + '</font>',
-                 '<font color=\'red\'>' + text + '</font>']
+    colortext = ['<font color=\'black\'>' + text + '</font>', '<font color=\'red\'>' + text + '</font>',
+                 '<font color=\'green\'>' + text + '</font>']
     return colortext[int(type)]
 
 
@@ -149,7 +175,7 @@ def out_html(parts):
     :param parts: 比较之后的结果是个数组
     :return:
     '''
-    # 第一种情况，当两个文档有共同title时，即i[0]==0时
+    # 第一种情况，当两个文档有共同title时，即i[0]==0时，第二种情况i[0]==1，第三种i[0]==2。
     html = ''
     for i in parts:
         if i[0] == 0:
@@ -160,6 +186,16 @@ def out_html(parts):
                 diff_type = ii[0]
                 diff_text = ii[1]
                 html += get_HTMLColorText(diff_type, diff_text)
+        elif i[0] == 1:
+            title = i[1]
+            html += '<h2><font color="green">【' + title + '】</font></h2>'
+            content = i[2]
+            html += '<font color="green">' + content + '</font>'
+        elif i[0] == 2:
+            title = i[1]
+            html += '<h2><font color="red">【' + title + '】</font></h2>'
+            content = i[2]
+            html += '<font color="red">' + content + '</font>'
 
     with open('out.html', 'w', encoding='utf-8') as f:
         f.write(html.replace('\n', '<br>'))
