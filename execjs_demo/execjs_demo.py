@@ -24,7 +24,7 @@ def get_diff(text1, text2):
 
 
 def __main():
-    diff = get_diff('你们好', '你好')
+    diff = get_diff('你们好啊', '你好')
     print(diff)
 
 

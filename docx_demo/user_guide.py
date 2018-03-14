@@ -7,7 +7,9 @@ import docx
 import os
 import re
 from execjs_demo.execjs_demo import get_diff
-import pprint
+from pprint import pprint
+from docx import Document
+from docx.shared import RGBColor
 
 base = '/Users/yaochao/work/说明书差异对比和提取'
 file1 = os.path.join(base, 'doc_handle1/【JYY编号1】硝苯地平控释片说明书 OCR版-质控后.docx')
@@ -103,14 +105,70 @@ def compare_two_files(f1, f2):
             text2 = i[3].strip()
             diff = get_diff(text1, text2)
             i.append(diff)
+    # TODO 对parts1排序，按照要求的title的顺序
     return parts1
 
 
+def get_RGBColor(diff_type):
+    '''
+    根据diff_type获取RGBColor对象
+    '''
+    color_map = [RGBColor(0x00, 0X00, 0X00), RGBColor(0xFF, 0X00, 0X00), RGBColor(0x00, 0XFF, 0X00)]
+    return color_map[int(diff_type)]
+
+
+def out_docx(parts):
+    '''
+    把比较之后的结果输出至docx文档
+    :param parts: 比较之后的结果是个数组
+    :return:
+    '''
+    document = Document()
+    # 第一种情况，当两个文档有共同title时，即i[0]==0时
+    for i in parts:
+        if i[0] == 0:
+            title = i[1]
+            document.add_heading('【' + title + '】', level=1)
+            diff = i[-1]
+            for ii in diff:
+                diff_type = ii[0]
+                diff_text = ii[1]
+                document.add_paragraph().add_run(diff_text).font.color.rgb = get_RGBColor(diff_type)
+    document.save('out.docx')
+
+
+def get_HTMLColorText(type, text):
+    colortext = ['<font color=\'black\'>' + text + '</font>', '<font color=\'green\'>' + text + '</font>',
+                 '<font color=\'red\'>' + text + '</font>']
+    return colortext[int(type)]
+
+
+def out_html(parts):
+    '''
+    把比较之后的结果输出至docx文档
+    :param parts: 比较之后的结果是个数组
+    :return:
+    '''
+    # 第一种情况，当两个文档有共同title时，即i[0]==0时
+    html = ''
+    for i in parts:
+        if i[0] == 0:
+            title = i[1]
+            html += '<h2>【' + title + '】</h2>'
+            diff = i[-1]
+            for ii in diff:
+                diff_type = ii[0]
+                diff_text = ii[1]
+                html += get_HTMLColorText(diff_type, diff_text)
+
+    with open('out.html', 'w', encoding='utf-8') as f:
+        f.write(html.replace('\n', '<br>'))
+
+
 def main():
-    parts = get_all_parts()
-    for part in parts:
-        print(part[0])
+    parts = compare_two_files(file1, file2)
+    out_html(parts)
 
 
 if __name__ == '__main__':
-    compare_two_files(file1, file2)
+    main()
