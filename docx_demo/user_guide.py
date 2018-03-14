@@ -16,11 +16,37 @@ file1 = os.path.join(base, 'doc_handle1/【JYY编号1】硝苯地平控释片说
 file2 = os.path.join(base, 'doc_handle2/【JYY编号1】1.钙拮抗剂-1：[拜新同]硝苯地平控释片（done） 3.docx')
 
 # 所有文件title的映射表
-titles_map = [['核准日期'], ['修改日期'], ['药品名称'], ['成份', '成 份'], ['适应症'], ['性状', '性 状'], ['规格', '规 格'], ['用法用量', '用法和用量'],
-              ['按照患者体重50kg计算', '按照患者体重50 kg计算'], ['不良反应'], ['禁忌'], ['注意事项', '注意事 项'],
-              ['孕妇及哺乳期妇女用药', '孕妇与哺乳期妇女用药', '孕妇及晡乳期妇女用药', '孕妇和哺乳期妇女用药'], ['儿童用药'], ['老年用药', '老年患者用药'], ['药物相互作用'],
-              ['药物过量'], ['临床试验'], ['药理毒理', '药物毒理'], ['药代动力学'], ['贮藏', '贮 藏', '贮   藏'], ['包装', '包 装'], ['有效期'], ['执行标准'],
-              ['批准文号', '批准文号:'], ['生产企业'], ['进口分装企业'], ['进口药品注册证号'], ['热线']]
+titles_map = [['核准日期'],
+              ['修改日期'],
+              ['警告'],
+              ['药品名称', '药品名称:'],
+              ['成份', '成 份', '主要成份'],
+              ['适应症', '适应症/功能主治'],
+              ['性状', '性 状'],
+              ['规格', '规 格', '规格型号'],
+              ['用法用量', '用法和用量'],
+              ['按照患者体重50kg计算', '按照患者体重50 kg计算'],
+              ['不良反应', '不良反应:'],
+              ['禁忌', '禁 忌'],
+              ['注意事项', '注意事 项', '注意事项:'],
+              ['孕妇及哺乳期妇女用药', '孕妇与哺乳期妇女用药', '孕妇及晡乳期妇女用药', '孕妇和哺乳期妇女用药', '孕妇和哺乳期妇女药'],
+              ['儿童用药'],
+              ['老年用药', '老年患者用药'],
+              ['药物相互作用'],
+              ['药物过量'],
+              ['临床试验'],
+              ['药理毒理', '药物毒理', '药理作用', '毒理研究'],
+              ['药代动力学'],
+              ['药物分类'],
+              ['贮藏', '贮 藏', '贮   藏', '贮裁'],
+              ['包装', '包 装'],
+              ['有效期', '有 效 期'],
+              ['执行标准'],
+              ['批准文号', '批准文号:'],
+              ['生产企业'],
+              ['进口分装企业'],
+              ['进口药品注册证号'],
+              ['热线']]
 
 
 def get_all_texts(dir_path):
@@ -52,6 +78,7 @@ def get_all_titles(texts):
         titles.extend(r)
     return set(titles)
 
+
 def get_titles():
     '''
     获取两个文件夹里面的所有docx文档的titles
@@ -68,7 +95,7 @@ def get_titles():
         all_titles1 += i
     for i in all_titles:
         if i[1:][:-1] not in all_titles1:
-            print("'"+i[1:][:-1]+"'")
+            print("'" + i[1:][:-1] + "'")
 
 
 def get_all_parts(f):
@@ -125,13 +152,13 @@ def compare_two_files(f1, f2):
             i.append(diff)
     # TODO 对parts1排序，按照要求的title的顺序
     new_parts1 = []
-    print(len(parts1))
+    print('parts1:',len(parts1))
     for i in titles_map:
         for ii in parts1:
             if ii[1] == i[0]:
                 new_parts1.append(ii)
                 parts1.remove(ii)
-    print(parts1)
+    print('new_parts1:',len(new_parts1))
     return new_parts1
 
 
@@ -169,7 +196,7 @@ def get_HTMLColorText(type, text):
     return colortext[int(type)]
 
 
-def out_html(parts):
+def out_html(parts, out):
     '''
     把比较之后的结果输出至docx文档
     :param parts: 比较之后的结果是个数组
@@ -197,13 +224,13 @@ def out_html(parts):
             content = i[2]
             html += '<font color="red">' + content + '</font>'
 
-    with open('out.html', 'w', encoding='utf-8') as f:
+    with open(out, 'w', encoding='utf-8') as f:
         f.write(html.replace('\n', '<br>'))
 
 
 def main():
-    parts = compare_two_files(file1, file2)
-    out_html(parts)
+    parts = compare_two_files(file2, 'out.docx')
+    out_html(parts, out='file2_out.html')
 
 
 if __name__ == '__main__':

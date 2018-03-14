@@ -10,6 +10,8 @@ import csv
 
 f = '/Users/yaochao/work/诊断名称/吉林_his_诊断.xlsx'
 online_f = '/Users/yaochao/work/诊断名称/online.csv'
+# 词表
+online_icd_mesh = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
 
 symbols_re = [
     r'\w+(-{1,7})\w+',
@@ -21,12 +23,12 @@ symbols_re = [
     r'\w+(,)[^其他的]\w+',  # 高血压病,脑梗
     r'\w+(\.)\w+',  # 不规则流血.尿路感染
     r'\w+(。)\w+',  # 盆腔炎。膀胱炎
-    r'\w+(和)\w+',  # 生殖器和泌尿生殖道的疱疹病毒感染
-    r'\w+(伴有)\w+',
-    r'\w+(伴)\w+',
-    r'\w+(或)\w+',
+    r'\w+(伴)[^有]\w+',
     r'\w+[^合](并)[^发证]\w+',
 ]
+
+
+# 算法改进记录：1.删除 '和'，'或'，'伴有'。2.切分后长度大于三个的忽略切分。3. 带有"(+)","(-)"的不分割(阳性阴性)。
 
 
 def get_all_values_csv(file_path):
@@ -44,12 +46,21 @@ def get_all_values_xlsx(f, sheet, index):
     return col_values
 
 
+def get_all_values_text(f):
+    with open(f, encoding='utf-8') as f:
+        lines = f.readlines()
+        return lines
+
+
 col_values = get_all_values_xlsx(f, 0, 0)
 col_values = [str(x).strip() for x in col_values]
 col_values = list(set(col_values))
 
 csv_values = get_all_values_csv(online_f)
 csv_values = [str(x[0]).strip() for x in csv_values]
+
+text_values = get_all_values_text(online_icd_mesh)
+text_values = [x.strip() for x in text_values]
 
 
 def get_all_split_name():
@@ -60,17 +71,16 @@ def get_all_split_name():
     all_items = []
     for i in col_values:
         item = []
-        # 给定的疾病名称，是否在线上ICD里面
-        if i not in csv_values:
-            item.append(0)
-            item.append(i)
-            flag_names = get_split_name(i)
-            if flag_names:
-                flag = flag_names[0]
-                names = flag_names[1]
-                item.append(flag)
-                [item.append(name) for name in names]
-                all_items.append(item)
+        item.append(0)
+        item.append(i)
+        flag_names = get_split_name(i)
+        if not flag_names:
+            continue
+        flag = flag_names[0]
+        names = flag_names[1]
+        item.append(flag)
+        [item.append(name) for name in names]
+        all_items.append(item)
 
     # 对r进行排序，按照分隔符排序
     all_items.sort(key=lambda x: x[2])
@@ -83,11 +93,27 @@ def get_split_name(name):
     :param name:
     :return:
     '''
+    # 如果name在线上ICD里面，就不分割
+    if name in csv_values:
+        return
+    # 如果name含有'(-)'或者'(+)'，就不分割
+    if '(-)' in name or '(+)' in name or '（-）' in name or '（+）' in name:
+        return
+
     for s in symbols_re:
         result = re.findall(s, name)
         if result:
+            # 当按照空格分割时，如果去掉空格，在词表中能找到，就不分割：例如"前列腺 炎"
+            if s == r'\w+( {1,})\w+':
+                tmp = name.replace(' ', '')
+                if tmp in text_values:
+                    print(name, tmp)
+                    return
             flag = result[0]
             names = name.split(flag)
+            # 如果分割出来的name不是2个，就不分割
+            if len(names) != 2:
+                return
             return flag, names
 
 
@@ -112,7 +138,40 @@ def write_to_xls():
     for row, i in enumerate(r):
         for column, ii in enumerate(i):
             sheet1.write(row + 1, column, ii)
-    book.save('诊断名称处理结果_类型排序_删除线上icd.xls')
+    book.save('诊断名称处理结果_类型排序_删除线上icd_算法改进.xls')
+
+
+def test():
+    '''
+    数据来源是合理用药数据，来测试本功能对合理用药的影响
+    :return:
+    '''
+    file1 = '/Users/yaochao/work/诊断名称/诊疗无结果请求.csv'
+    file11 = '/Users/yaochao/work/诊断名称/诊疗无结果请求_诊断分词.csv'
+    file2 = '/Users/yaochao/work/诊断名称/诊疗有结果请求.csv'
+    file22 = '/Users/yaochao/work/诊断名称/诊疗有结果请求_诊断分词.csv'
+    with open(file1, encoding='utf-8') as f:
+        csv_reader = csv.reader(f)
+        content = list(csv_reader)
+        for idx, i in enumerate(content):
+            if i[3] == '诊断':
+                origin_names = i[4:]
+                new_names = []
+                for name in origin_names:
+                    r = get_split_name(name)
+                    if not r:
+                        continue
+                    new_names += r[1]
+                    new_i = i[:4] + new_names
+                    # 把原来的i替换为new_i
+                    content.pop(idx)
+                    content.insert(idx, new_i)
+                    print(new_i)
+
+        # # 写进新的csv
+        # with open(file11, 'w', encoding='utf-8') as f:
+        #     csv_writer = csv.writer(f)
+        #     csv_writer.writerows(content)
 
 
 def main():
