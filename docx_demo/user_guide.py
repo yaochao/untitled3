@@ -193,6 +193,10 @@ def compare_two_files(f1, f2):
                 new_parts1.append(ii)
                 parts1.remove(ii)
     print('new_parts1:', len(new_parts1))
+
+    for i in parts1:
+        if i not in new_parts1:
+            print('new_parts1中缺少的:', i[0], i[1])
     return new_parts1
 
 
@@ -299,6 +303,7 @@ def go():
         f1 = i[1]
         f2 = i[2]
         out = i[0]
+        print('正在比对：', i[0])
         parts = compare_two_files(f1, f2)
         out_html(parts, out='/Users/yaochao/work/说明书差异对比和提取/out/' + out + '.html')
 
