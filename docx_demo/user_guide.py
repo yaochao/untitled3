@@ -21,8 +21,8 @@ file462 = os.path.join(base, 'doc_handle2/【JYY编号46】氯沙坦钾氢氯噻
 titles_map = [['核准日期'],
               ['修改日期'],
               ['警告'],
-              ['药品名称', '药品名称:'],
-              ['成份', '成 份', '主要成份'],
+              ['药品名称', '药品名称:', '商品名', '通用名'],
+              ['成份', '成 份', '主要成份', '主要成分'],
               ['适应症', '适应症/功能主治'],
               ['性状', '性 状'],
               ['规格', '规 格', '规格型号'],
@@ -31,21 +31,23 @@ titles_map = [['核准日期'],
               ['不良反应', '不良反应:'],
               ['禁忌', '禁 忌'],
               ['注意事项', '注意事 项', '注意事项:'],
-              ['孕妇及哺乳期妇女用药', '孕妇与哺乳期妇女用药', '孕妇及晡乳期妇女用药', '孕妇和哺乳期妇女用药', '孕妇和哺乳期妇女药'],
-              ['儿童用药'],
+              ['服药与进食'],
+              ['孕妇及哺乳期妇女用药', '孕妇与哺乳期妇女用药', '孕妇及晡乳期妇女用药', '孕妇和哺乳期妇女用药', '孕妇和哺乳期妇女药', '孕妇及哺乳期服妇女用药'],
+              ['妊娠期药物危险性等级', '哺乳期药物危险性等级'],
+              ['儿童用药', '儿童用量'],
               ['老年用药', '老年患者用药'],
               ['药物相互作用'],
               ['药物过量'],
               ['临床试验'],
               ['药理毒理', '药物毒理', '药理作用', '毒理研究'],
-              ['药代动力学'],
+              ['药代动力学', '药物（代谢）动力学'],
               ['药物分类'],
               ['贮藏', '贮 藏', '贮   藏', '贮裁'],
               ['包装', '包 装'],
               ['有效期', '有 效 期'],
               ['执行标准'],
               ['批准文号', '批准文号:'],
-              ['生产企业'],
+              ['生产企业', '制造厂'],
               ['进口分装企业'],
               ['进口药品注册证号'],
               ['热线']]
@@ -65,7 +67,7 @@ def get_all_texts(dir_path):
             text = ''
             parts = get_all_parts_md(f)
             for i in parts:
-                title = '【'+i[0]+'】'
+                title = '【' + i[0] + '】'
                 text += title
                 text += i[1]
             texts.append(text)
@@ -80,7 +82,7 @@ def get_text(f):
 
 
 def get_all_titles(texts):
-    title_re = r'【.+?】'
+    title_re = '【(.+?)】'
     title_re = re.compile(title_re)
     titles = []
     for t in texts:
@@ -104,8 +106,8 @@ def get_titles():
     for i in titles_map:
         all_titles1 += i
     for i in all_titles:
-        if i[1:][:-1] not in all_titles1:
-            print("'" + i[1:][:-1] + "'")
+        if i not in all_titles1:
+            print(i)
 
 
 def get_all_parts(f):
@@ -121,11 +123,13 @@ def get_all_parts(f):
     else:
         return ''
 
+
 def get_all_parts_docx(f):
     text = get_text(f)
     title_re = '【(.+?)】([\w\W]+?)(?<![见和])(?=【|$)'
     parts = re.findall(title_re, text)
     return parts
+
 
 def get_all_parts_md(f):
     title_re = '## (.+?)\n([\w\W]+?)(?=##|$)'
@@ -133,8 +137,6 @@ def get_all_parts_md(f):
         text = f.read()
         parts = re.findall(title_re, text)
         return parts
-
-
 
 
 def title_unification(title):
@@ -184,13 +186,13 @@ def compare_two_files(f1, f2):
             i.append(diff)
     # TODO 对parts1排序，按照要求的title的顺序
     new_parts1 = []
-    print('parts1:',len(parts1))
+    print('parts1:', len(parts1))
     for i in titles_map:
         for ii in parts1:
             if ii[1] == i[0]:
                 new_parts1.append(ii)
                 parts1.remove(ii)
-    print('new_parts1:',len(new_parts1))
+    print('new_parts1:', len(new_parts1))
     return new_parts1
 
 
@@ -265,5 +267,41 @@ def main():
     out_html(parts, out='out46.html')
 
 
+def go():
+    dir_path1 = '/Users/yaochao/work/说明书差异对比和提取/doc_handle1'
+    dir_path2 = '/Users/yaochao/work/说明书差异对比和提取/doc_handle2'
+    files_name1 = os.listdir(dir_path1)
+    files_name1 = [os.path.join(dir_path1, x) for x in files_name1]
+
+    files_name2 = os.listdir(dir_path2)
+    files_name2 = [os.path.join(dir_path2, x) for x in files_name2]
+    new_files_name1 = []
+    for i in files_name1:
+        if '.docx' in i or '.md' in i:
+            i_re = '/(【JYY编号\d{1,3}】)\w+'
+            pre_i = re.findall(i_re, i)
+            pre_i = pre_i[0] if pre_i else ''
+            new_files_name1.append([pre_i, i])
+    new_files_name2 = []
+    for i in files_name2:
+        if '.docx' in i or '.md' in i:
+            i_re = '/(【JYY编号\d{1,3}】)\w+'
+            pre_i = re.findall(i_re, i)
+            pre_i = pre_i[0] if pre_i else ''
+            new_files_name2.append([pre_i, i])
+    compare_files = []
+    for i in new_files_name1:
+        for ii in new_files_name2:
+            if i[0] == ii[0]:
+                compare_files.append([i[0], i[1], ii[1]])
+    assert len(new_files_name1) == len(new_files_name2) == len(compare_files)
+    for i in compare_files:
+        f1 = i[1]
+        f2 = i[2]
+        out = i[0]
+        parts = compare_two_files(f1, f2)
+        out_html(parts, out='/Users/yaochao/work/说明书差异对比和提取/out/' + out + '.html')
+
+
 if __name__ == '__main__':
-    main()
+    go()
