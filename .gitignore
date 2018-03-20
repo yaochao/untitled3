@@ -202,5 +202,6 @@ venv.bak/
 *.xlsx
 *.doc
 *.docx
+*.txt
 
 # End of https://www.gitignore.io/api/macos,python,pycharm
