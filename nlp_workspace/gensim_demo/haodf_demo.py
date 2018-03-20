@@ -13,20 +13,22 @@ from numpy import linalg as la
 from utils import cut_sentence
 # 配置好 logging，gensim 会打印出日志
 import logging
-
+import os
 import xlrd
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 base_path = '/Users/yaochao/python/datasets/'
-userdict_path = base_path + 'user_dicts/online_and_icd_and_mesh.txt'
-stopwords_path = base_path + 'user_dicts/stopwords5.txt'
-file_path_100 = base_path + 'haodf_chats_detail_100W_pre.csv.word2vec_model'
-file_path_1000 = base_path + 'haodf_chats_detail_1000W_pre.csv.word2vec_model'
-file_path_1000_stopwords = base_path + 'haodf_chats_detail_1000W_pre.csv.w2v_model'
-file_path_baike_cbow = base_path + 'downloads/cn.cbow.bin'
-file_path_baike_skipgram = base_path + 'downloads/cn.skipgram.bin'
-file_path = base_path + 'abaike_10000.word2vec_model'
+userdict_path = os.path.join(base_path, 'user_dicts/online_and_icd_and_mesh.txt')
+stopwords_path = os.path.join(base_path, 'user_dicts/stopwords5.txt')
+file_path_100 = os.path.join(base_path, 'haodf_chats_detail_100W_pre.csv.word2vec_model')
+file_path_1000 = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.word2vec_model')
+file_path_1000_stopwords = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.w2v_model')
+file_path_baike_cbow = os.path.join(base_path, 'downloads/cn.cbow.bin')
+file_path_news_baidubaike_novel = os.path.join(base_path,
+                                                 'downloads/news_12g_baidubaike_20g_novel_90g_embedding_64.model')
+file_path_baike_skipgram = os.path.join(base_path, 'downloads/cn.skipgram.bin')
+file_path = os.path.join(base_path, 'abaike_10000.word2vec_model')
 mysql_config = {
     'host': '127.0.0.1',
     # 'host': '172.31.48.29',
@@ -222,7 +224,6 @@ def map_online_to_icd():
         online_words_random.append(online_word)
     print(len(set(online_words_random)))
 
-
     # 加载word2vec模型
     model = gensim.models.Word2Vec.load(file_path_1000_stopwords)
     result = []
@@ -245,18 +246,20 @@ def map_online_to_icd():
 
 def use_model():
     # load the original Google word2vec model, use the KeyedVectors.load_word2vec_format()
-    model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True,
-                                                                 encoding='utf-8', unicode_errors='ignore')
-    # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
-    model_100 = gensim.models.Word2Vec.load(file_path_100)
-    model_1000 = gensim.models.Word2Vec.load(file_path_1000)
-    model_1000_stopwords = gensim.models.Word2Vec.load(file_path_1000_stopwords)
+    # model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True,
+    #                                                              encoding='utf-8', unicode_errors='ignore')
+    # # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
+    # model_100 = gensim.models.Word2Vec.load(file_path_100)
+    # model_1000 = gensim.models.Word2Vec.load(file_path_1000)
+    # model_1000_stopwords = gensim.models.Word2Vec.load(file_path_1000_stopwords)
+    model_news_baidubaike_novel = gensim.models.Word2Vec.load(file_path_news_baidubaike_novel)
     # print('你好' in model)
     word = '近视'
-    print('100     ', model_100.wv.most_similar(word, topn=5))
-    print('1000    ', model_1000.wv.most_similar(word, topn=5))
-    print('1000sw  ', model_1000_stopwords.wv.most_similar(word, topn=5))
-    print('baike   ', model_cbow.wv.most_similar(word, topn=5))
+    # print('100     ', model_100.wv.most_similar(word, topn=5))
+    # print('1000    ', model_1000.wv.most_similar(word, topn=5))
+    # print('1000sw  ', model_1000_stopwords.wv.most_similar(word, topn=5))
+    # print('baike   ', model_cbow.wv.most_similar(word, topn=5))
+    print('news_baidubaike_novel   ', model_news_baidubaike_novel.wv.most_similar(word, topn=5))
     # print(model.wv.similarity('中国', '北京'))
     # print(cos_similarity(model['中国'], model['北京']))
 
@@ -264,7 +267,7 @@ def use_model():
 def main():
     result = map_online_to_icd()
     result2 = []
-    for i in result:    
+    for i in result:
         a = []
         ol_word = i[0]
         a.append(ol_word)
@@ -276,7 +279,6 @@ def main():
             # a.append(rate)
         result2.append(a)
 
-
     # 输出到csv
     with open('online_to_icd_random100.csv', 'w', encoding='utf-8') as f:
         f_csv = csv.writer(f)
@@ -285,4 +287,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    use_model()
