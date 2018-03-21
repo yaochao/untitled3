@@ -26,7 +26,8 @@ file_path_1000 = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.word2
 file_path_1000_stopwords = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.w2v_model')
 file_path_baike_cbow = os.path.join(base_path, 'downloads/cn.cbow.bin')
 file_path_news_baidubaike_novel = os.path.join(base_path,
-                                                 'downloads/news_12g_baidubaike_20g_novel_90g_embedding_64.model')
+                                               'downloads/news_12g_baidubaike_20g_novel_90g_embedding_64.model')
+file_path_news_baidubaike_novel_dim128 = '/Users/yaochao/python/datasets/downloads/news12g_bdbk20g_nov90g/news12g_bdbk20g_nov90g_dim128.bin'
 file_path_baike_skipgram = os.path.join(base_path, 'downloads/cn.skipgram.bin')
 file_path = os.path.join(base_path, 'abaike_10000.word2vec_model')
 mysql_config = {
@@ -246,20 +247,20 @@ def map_online_to_icd():
 
 def use_model():
     # load the original Google word2vec model, use the KeyedVectors.load_word2vec_format()
-    # model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True,
-    #                                                              encoding='utf-8', unicode_errors='ignore')
-    # # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
-    # model_100 = gensim.models.Word2Vec.load(file_path_100)
-    # model_1000 = gensim.models.Word2Vec.load(file_path_1000)
-    # model_1000_stopwords = gensim.models.Word2Vec.load(file_path_1000_stopwords)
-    model_news_baidubaike_novel = gensim.models.Word2Vec.load(file_path_news_baidubaike_novel)
+    model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True, encoding='utf-8', unicode_errors='ignore')
+    # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
+    model_100 = gensim.models.Word2Vec.load(file_path_100)
+    model_1000 = gensim.models.Word2Vec.load(file_path_1000)
+    model_1000_stopwords = gensim.models.Word2Vec.load(file_path_1000_stopwords)
+    # model_news_baidubaike_novel = gensim.models.Word2Vec.load(file_path_news_baidubaike_novel_dim128)
+    # model_news_baidubaike_novel = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_news_baidubaike_novel_dim128, binary=True, encoding='utf-8', unicode_errors='ignore')
     # print('你好' in model)
     word = '近视'
-    # print('100     ', model_100.wv.most_similar(word, topn=5))
-    # print('1000    ', model_1000.wv.most_similar(word, topn=5))
-    # print('1000sw  ', model_1000_stopwords.wv.most_similar(word, topn=5))
-    # print('baike   ', model_cbow.wv.most_similar(word, topn=5))
-    print('news_baidubaike_novel   ', model_news_baidubaike_novel.wv.most_similar(word, topn=5))
+    print('100     ', model_100.wv.most_similar(word, topn=5))
+    print('1000    ', model_1000.wv.most_similar(word, topn=5))
+    print('1000sw  ', model_1000_stopwords.wv.most_similar(word, topn=5))
+    print('baike   ', model_cbow.wv.most_similar(word, topn=5))
+    # print('news_baidubaike_novel   ', model_news_baidubaike_novel.wv.most_similar(word, topn=5))
     # print(model.wv.similarity('中国', '北京'))
     # print(cos_similarity(model['中国'], model['北京']))
 
