@@ -6,7 +6,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
-from django_demo.misc.diagnosis_name_split import get_all_split_name
+from .diagnosis_name_split import get_all_split_name
 
 
 def hello(request):
