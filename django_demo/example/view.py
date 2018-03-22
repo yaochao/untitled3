@@ -24,9 +24,8 @@ def hello2(request):
 class DiagnosisAPI(APIView):
     def get(self, request, *args, **kwargs):
         r = {
-            'name': 'yaochao',
-            'sex': 'male',
-            'age': '28',
+            'status': 401,
+            'message': 'you need POST method.',
         }
         return JsonResponse(r)
 
@@ -35,7 +34,7 @@ class DiagnosisAPI(APIView):
         params = request.data
         if not isinstance(params, list):
             result['message'] = 'must be a list'
-            result['status'] = 401
+            result['status'] = 402
             return JsonResponse(result)
         try:
             names = get_all_split_name(params)
@@ -46,5 +45,5 @@ class DiagnosisAPI(APIView):
         except Exception as e:
             print(e)
             result['message'] = e.__str__()
-            result['status'] = 402
+            result['status'] = 403
         return JsonResponse(result)
