@@ -203,5 +203,7 @@ venv.bak/
 *.doc
 *.docx
 *.txt
+!online.csv
+!online_and_icd_and_mesh.txt
 
 # End of https://www.gitignore.io/api/macos,python,pycharm
