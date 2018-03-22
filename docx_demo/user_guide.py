@@ -42,7 +42,8 @@ titles_map = [['核准日期'],
               ['药物相互作用'],
               ['药物过量'],
               ['临床试验'],
-              ['药理毒理', '药物毒理', '药理作用', '毒理研究'],
+              ['药理毒理', '药物毒理', '药理作用'],
+              ['毒理研究'],
               ['药代动力学', '药物（代谢）动力学'],
               ['药物分类'],
               ['贮藏', '贮 藏', '贮   藏', '贮裁'],
@@ -296,11 +297,13 @@ def go():
             pre_i = re.findall(i_re, i)
             pre_i = pre_i[0] if pre_i else ''
             new_files_name2.append([pre_i, i])
+
     compare_files = []
     for i in new_files_name1:
         for ii in new_files_name2:
             if i[0] == ii[0]:
                 compare_files.append([i[0], i[1], ii[1]])
+    print(len(new_files_name1), len(new_files_name2), len(compare_files))
     assert len(new_files_name1) == len(new_files_name2) == len(compare_files)
     for i in compare_files:
         f1 = i[1]

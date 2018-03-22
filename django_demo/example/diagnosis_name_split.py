@@ -72,9 +72,9 @@ def get_all_split_name2(names):
     for name in names:
         r = get_split_name(name)
         if r:
-            all_items += '@!@'+name+'@#@'+'@$@'.join(r)+'@!@'
+            all_items += '@###@'+name+'@##@'+'@#@'.join(r)+'@###@'
         else:
-            all_items += '@!@'+name+'@#@'+name+'@!@'
+            all_items += '@###@'+name+'@##@'+'@=@'+name+'@###@'
     return all_items
 
 
