@@ -3,15 +3,14 @@
 # Created by yaochao at 2018/3/5
 
 
-import xlrd
-import xlwt
 import re
 import csv
+import os
 
-f = '/Users/yaochao/work/诊断名称/吉林_his_诊断.xlsx'
-online_f = '/Users/yaochao/work/诊断名称/online.csv'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+online_f = os.path.join(BASE_DIR, 'misc/online.csv')
 # 词表
-online_icd_mesh = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
+online_icd_mesh = os.path.join(BASE_DIR, 'misc/online_and_icd_and_mesh.txt')
 
 symbols_re = [
     r'\w+(-{1,7})\w+',
@@ -37,13 +36,6 @@ def get_all_values_csv(file_path):
         csv_header = next(csv_f)
         csv_values = list(csv_f)
         return csv_values
-
-
-def get_all_values_xlsx(f, sheet, index):
-    hook = xlrd.open_workbook(filename=f)
-    sheet = hook.sheet_by_index(sheet)
-    col_values = sheet.col_values(index)
-    return col_values
 
 
 def get_all_values_text(f):
