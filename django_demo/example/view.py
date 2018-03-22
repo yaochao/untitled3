@@ -33,8 +33,8 @@ class DiagnosisAPI(APIView):
         result = {}
         params = request.data
         if not isinstance(params, list):
-            result['message'] = 'must be a list'
             result['status'] = 402
+            result['message'] = 'must be a list'
             return JsonResponse(result)
         try:
             names = get_all_split_name(params)
