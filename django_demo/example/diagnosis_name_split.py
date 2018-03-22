@@ -63,6 +63,20 @@ def get_all_split_name(names):
 
     return all_items
 
+def get_all_split_name2(names):
+    '''
+    将所有的name进行分割
+    :return:
+    '''
+    all_items = ''
+    for name in names:
+        r = get_split_name(name)
+        if r:
+            all_items += '@!@'+name+'@#@'+'@$@'.join(r)+'@!@'
+        else:
+            all_items += '@!@'+name+'@#@'+name+'@!@'
+    return all_items
+
 
 def get_split_name(name):
     '''

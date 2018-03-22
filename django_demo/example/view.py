@@ -6,7 +6,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .diagnosis_name_split import get_all_split_name
+from .diagnosis_name_split import get_all_split_name, get_all_split_name2
 
 
 def hello(request):
@@ -37,13 +37,15 @@ class DiagnosisAPI(APIView):
             result['message'] = 'must be a list'
             return JsonResponse(result)
         try:
-            names = get_all_split_name(params)
-            result['message'] = 'success'
-            result['status'] = 200
-            result['resource'] = names
-            return JsonResponse(result)
+            names = get_all_split_name2(params)
+            # result['message'] = 'success'
+            # result['status'] = 200
+            # result['resource'] = names
+            # return JsonResponse(result)
+            print(names)
+            return HttpResponse(names)
         except Exception as e:
             print(e)
             result['message'] = e.__str__()
             result['status'] = 403
-        return JsonResponse(result)
+            return JsonResponse(result)
