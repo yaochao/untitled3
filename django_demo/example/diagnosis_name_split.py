@@ -11,6 +11,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 online_f = os.path.join(BASE_DIR, 'misc/online.csv')
 # 词表
 online_icd_mesh = os.path.join(BASE_DIR, 'misc/online_and_icd_and_mesh.txt')
+online_icd_mesh_jilincibiao = '/Users/yaochao/work/诊断名称/online_and_icd_and_mesh_吉林词表.txt'
+jilin_cibiao = '/Users/yaochao/work/诊断名称/吉林_his_诊断_词表.txt'
 
 symbols_re = [
     r'\w+(-{1,7})\w+',
@@ -47,8 +49,11 @@ def get_all_values_text(f):
 csv_values = get_all_values_csv(online_f)
 csv_values = [str(x[0]).strip() for x in csv_values]
 
-text_values = get_all_values_text(online_icd_mesh)
+text_values = get_all_values_text(online_icd_mesh_jilincibiao)
 text_values = [x.strip() for x in text_values]
+
+jilin_cibiao = get_all_values_text(jilin_cibiao)
+jilin_cibiao = [x.strip() for x in jilin_cibiao]
 
 
 def get_all_split_name(names):
@@ -86,6 +91,9 @@ def get_split_name(name):
     '''
     # 如果name在线上ICD里面，就不分割
     if name in csv_values:
+        return
+    # 如果name在自定义的词表里面，就不分割
+    if name in jilin_cibiao:
         return
     # 如果name含有'(-)'或者'(+)'，就不分割
     if '(-)' in name or '(+)' in name or '（-）' in name or '（+）' in name:
