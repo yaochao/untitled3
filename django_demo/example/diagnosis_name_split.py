@@ -92,13 +92,14 @@ def get_split_name(name):
             if s == r'\w+( {1,})\w+':
                 tmp = name.replace(' ', '')
                 if tmp in text_values:
-                    print(name, tmp)
+                    print(name, '===', tmp)
                     return
             flag = result[0]
             names = name.split(flag)
             # 如果分割出来的name不是2个，就不分割
             if len(names) != 2:
                 return
+            print(name, ':', names)
             return names
 
 
