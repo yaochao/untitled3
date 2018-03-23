@@ -37,13 +37,11 @@ class DiagnosisAPI(APIView):
             result['message'] = 'must be a list'
             return JsonResponse(result)
         try:
-            names = get_all_split_name2(params)
-            # result['message'] = 'success'
-            # result['status'] = 200
-            # result['resource'] = names
-            # return JsonResponse(result)
-            print(names)
-            return HttpResponse(names)
+            names = get_all_split_name(params)
+            result['message'] = 'success'
+            result['status'] = 200
+            result['resource'] = names
+            return JsonResponse(result)
         except Exception as e:
             print(e)
             result['message'] = e.__str__()
