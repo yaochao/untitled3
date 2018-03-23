@@ -12,6 +12,8 @@ f = '/Users/yaochao/work/诊断名称/吉林_his_诊断.xlsx'
 online_f = '/Users/yaochao/work/诊断名称/online.csv'
 # 词表
 online_icd_mesh = '/Users/yaochao/python/datasets/user_dicts/online_and_icd_and_mesh.txt'
+# online_icd_mesh_jilincibiao:加了一些不需要拆分的吉林his诊断词表
+online_icd_mesh_jilincibiao = '/Users/yaochao/work/诊断名称/online_and_icd_and_mesh_吉林词表.txt'
 
 symbols_re = [
     r'\w+(-{1,7})\w+',
@@ -24,11 +26,12 @@ symbols_re = [
     r'\w+(\.)\w+',  # 不规则流血.尿路感染
     r'\w+(。)\w+',  # 盆腔炎。膀胱炎
     r'\w+(伴)[^有]\w+',
+    r'\w+(伴有)\w+',
     r'\w+[^合](并)[^发证]\w+',
 ]
 
 
-# 算法改进记录：1.删除 '和'，'或'，'伴有'。2.切分后长度大于三个的忽略切分。3. 带有"(+)","(-)"的不分割(阳性阴性)。
+# 算法改进记录：1.删除 '和'，'或'。2.切分后长度大于三个的忽略切分。3. 带有"(+)","(-)"的不分割(阳性阴性)。
 
 
 def get_all_values_csv(file_path):
@@ -59,7 +62,7 @@ col_values = list(set(col_values))
 csv_values = get_all_values_csv(online_f)
 csv_values = [str(x[0]).strip() for x in csv_values]
 
-text_values = get_all_values_text(online_icd_mesh)
+text_values = get_all_values_text(online_icd_mesh_jilincibiao)
 text_values = [x.strip() for x in text_values]
 
 
