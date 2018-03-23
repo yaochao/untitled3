@@ -11,8 +11,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 online_f = os.path.join(BASE_DIR, 'misc/online.csv')
 # 词表
 online_icd_mesh = os.path.join(BASE_DIR, 'misc/online_and_icd_and_mesh.txt')
-online_icd_mesh_jilincibiao = '/Users/yaochao/work/诊断名称/online_and_icd_and_mesh_吉林词表.txt'
-jilin_cibiao = '/Users/yaochao/work/诊断名称/吉林_his_诊断_词表.txt'
+online_icd_mesh_jilincibiao = os.path.join(BASE_DIR, 'misc/online_and_icd_and_mesh_吉林词表.txt')
+jilin_cibiao = os.path.join(BASE_DIR, 'misc/吉林_his_诊断_词表.txt')
 
 symbols_re = [
     r'\w+(-{1,7})\w+',
@@ -66,20 +66,6 @@ def get_all_split_name(names):
         r = get_split_name(name)
         all_items[name] = r if r else [name]
 
-    return all_items
-
-def get_all_split_name2(names):
-    '''
-    将所有的name进行分割
-    :return:
-    '''
-    all_items = ''
-    for name in names:
-        r = get_split_name(name)
-        if r:
-            all_items += '@###@'+name+'@##@'+'@#@'.join(r)+'@###@'
-        else:
-            all_items += '@###@'+name+'@##@'+'@=@'+name+'@###@'
     return all_items
 
 
