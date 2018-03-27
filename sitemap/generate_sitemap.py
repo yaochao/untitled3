@@ -25,11 +25,11 @@ def gen_sitemap(total):
             for i in range((index - 1) * 50000 + 1, index * 50000 + 1):
                 a_site = '''
 <url>
-<loc>http://www.jishux.com/plus/view-{}-1.html</loc>
-<lastmod>2017-08-31</lastmod>
+<loc>https://www.jishux.com/plus/view-{}-1.html</loc>
+<lastmod>2018-03-27</lastmod>
 </url>'''.format(str(i))
                 f.write(a_site)
             f.write('\n</urlset>')
 
 if __name__ == '__main__':
-    gen_sitemap(653727)
+    gen_sitemap(750000)
