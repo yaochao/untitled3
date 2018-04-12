@@ -7,8 +7,12 @@ import xmltodict
 from gzip import GzipFile
 import pymongo
 import pymysql
+import jieba.posseg as pseg
 
 # 原文链接：https://www.jianshu.com/p/e21b570a6b8a
+
+STOPWORDS = '/Users/yaochao/python/datasets/stopwords/stopwords.txt'
+stopwords = open(STOPWORDS, encoding='utf-8').read().split('\n')
 
 base_path = '/Users/yaochao/python/datasets/downloads/sohu_news/'
 news_path = path.join(base_path, 'news_sohusite_xml.xml.gz')
@@ -56,5 +60,42 @@ def text_preprocess():
     conn.close()
 
 
+def text_analysis():
+    conn = pymysql.connect(**mysql_config)
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = 'SELECT * FROM sohu_news WHERE category IS NOT NULL'
+    cursor.execute(sql)
+    print(cursor.fetchone())
+
+
+def text_fenci():
+    conn = pymysql.connect(**mysql_config)
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = 'SELECT * FROM sohu_news WHERE category IS NOT NULL AND content_fenci IS NULL AND category in ("business")'
+    cursor.execute(sql)
+    for item in cursor.fetchall():
+        id = item['id']
+        print(id)
+        content = item['content']
+        contenttitle = item['contenttitle']
+        content = fenci_nostopwords(contenttitle + ' ' + content)
+        sql = 'UPDATE sohu_news SET content_fenci=%s WHERE id=%s'
+        cursor.execute(sql, (content, id))
+        conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def fenci_nostopwords(text):
+    words = pseg.cut(text)
+    words2 = []
+    for w in words:
+        if w.flag != 'x':
+            if w.word not in stopwords:
+                words2.append(w.word)
+    return ' '.join(words2)
+
+
 if __name__ == '__main__':
-    text_preprocess()
+    # text_preprocess()
+    text_fenci()

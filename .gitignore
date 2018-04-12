@@ -207,5 +207,6 @@ venv.bak/
 !online_and_icd_and_mesh.txt
 !online_and_icd_and_mesh_吉林词表.txt
 !吉林_his_诊断_词表.txt
+*.model
 
 # End of https://www.gitignore.io/api/macos,python,pycharm
