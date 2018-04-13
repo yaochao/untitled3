@@ -5,7 +5,6 @@
 from os import path
 import xmltodict
 from gzip import GzipFile
-import pymongo
 import pymysql
 import jieba.posseg as pseg
 

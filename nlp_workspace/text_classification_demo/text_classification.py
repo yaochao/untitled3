@@ -30,7 +30,7 @@ EMBEDDING_DIM = 300
 TRAIN_SPLIT = 0.65
 VALIDATION_SPLIT = 0.15
 TEST_SPLIT = 0.2
-W2V_MODEL = '/Users/yaochao/python/datasets/downloads/cn.cbow.bin'
+W2V_MODEL = '/Users/yaochao/python/datasets/downloads/cn.cbow.dim300.bin'
 TRAINED_MODEL = 'cnn.w2v.model'
 
 
@@ -43,7 +43,7 @@ def get_texts_labels():
     conn = pymysql.connect(**MYSQL_CONFIG)
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     for index, category in enumerate(CATEGORYS.keys()):
-        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 2000'
+        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 1000'
         cursor.execute(sql, category)
         items += cursor.fetchall()
     random.shuffle(items)
@@ -103,7 +103,8 @@ def load_w2v_as_embedding(word_index, input_length):
         else:
             not_in_w2v += 1
     print('{}个词不在w2v模型中'.format(not_in_w2v))
-    embedding_layer = Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=input_length, weights=[embedding_metrix],
+    embedding_layer = Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=input_length,
+                                weights=[embedding_metrix],
                                 trainable=False)
     return embedding_layer
 
@@ -125,12 +126,15 @@ def train_model(embedding_layer, labels, x_train, y_train, x_validate, y_validat
     plot_model(model, to_file='model.png', show_shapes=True)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
     print(model.metrics_names)
-    model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=5, batch_size=100)
-    model.save(TRAINED_MODEL)
+    model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=100)
+    # model.save(TRAINED_MODEL)
     return model
 
 
-def test_model(model, x_test, y_test):
+def evaluate_model(model, x_test, y_test):
+    '''
+    test model
+    '''
     return model.evaluate(x=x_test, y=y_test)
 
 
@@ -149,8 +153,8 @@ def main():
     embedding_layer = load_w2v_as_embedding(word_index, input_length=sequences.shape[1])
     # 5. 构造模型，训练模型
     model = train_model(embedding_layer, labels, x_train, y_train, x_validate, y_validate)
-    # 6. 验证模型
-    loss, accuracy = test_model(model, x_test, y_test)
+    # 6. 评估验证模型
+    loss, accuracy = evaluate_model(model, x_test, y_test)
     print(loss, accuracy)
 
 
