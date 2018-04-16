@@ -43,7 +43,7 @@ def get_texts_labels():
     conn = pymysql.connect(**MYSQL_CONFIG)
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     for index, category in enumerate(CATEGORYS.keys()):
-        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 1000'
+        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 100'
         cursor.execute(sql, category)
         items += cursor.fetchall()
     random.shuffle(items)
@@ -109,7 +109,7 @@ def load_w2v_as_embedding(word_index, input_length):
     return embedding_layer
 
 
-def train_model(embedding_layer, labels, x_train, y_train, x_validate, y_validate):
+def train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y_validate):
     '''
     constructure and train model
     :return:
@@ -131,6 +131,28 @@ def train_model(embedding_layer, labels, x_train, y_train, x_validate, y_validat
     return model
 
 
+def train_model_cnn(word_index, sequences, labels, x_train, y_train, x_validate, y_validate):
+    '''
+    constructure and train model
+    :return:
+    '''
+    model = Sequential()
+    model.add(Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=sequences.shape[1]))
+    model.add(Dropout(rate=0.2))
+    model.add(Conv1D(filters=250, kernel_size=3, strides=1, padding='valid', activation='relu'))
+    model.add(MaxPool1D(pool_size=3))
+    model.add(Flatten())
+    model.add(Dense(units=EMBEDDING_DIM, activation='relu'))
+    model.add(Dense(units=labels.shape[1], activation='softmax'))
+    model.summary()
+    plot_model(model, to_file='model.png', show_shapes=True)
+    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
+    print(model.metrics_names)
+    model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=128)
+    # model.save(TRAINED_MODEL)
+    return model
+
+
 def evaluate_model(model, x_test, y_test):
     '''
     test model
@@ -140,7 +162,7 @@ def evaluate_model(model, x_test, y_test):
 
 def main():
     '''
-    Main process
+    使用预训练的w2v模型来构造embedding_layer。
     :return:
     '''
     # 1. 加载文本，标签
@@ -152,8 +174,27 @@ def main():
     # 4. 使用word2vec的向量模型来构造embedding_layer
     embedding_layer = load_w2v_as_embedding(word_index, input_length=sequences.shape[1])
     # 5. 构造模型，训练模型
-    model = train_model(embedding_layer, labels, x_train, y_train, x_validate, y_validate)
+    model = train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y_validate)
     # 6. 评估验证模型
+    loss, accuracy = evaluate_model(model, x_test, y_test)
+    print(loss, accuracy)
+
+
+def main2():
+    '''
+    不使用预训练的w2v模型来构造embedding_layer。
+    0.25653166955709455 0.9315
+    :return:
+    '''
+    # 1. 加载文本，标签
+    texts, labels = get_texts_labels()
+    # 2. 文本分词
+    sequences, labels, word_index = texts_labels_tokenizer(texts, labels)
+    # 3. 数据分割为，训练集，验证集，测试集
+    x_train, y_train, x_validate, y_validate, x_test, y_test = texts_labels_slicer(sequences, labels)
+    # 4. 构造模型，训练模型
+    model = train_model_cnn(word_index, sequences, labels, x_train, y_train, x_validate, y_validate)
+    # 5. 评估验证模型
     loss, accuracy = evaluate_model(model, x_test, y_test)
     print(loss, accuracy)
 
