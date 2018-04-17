@@ -70,7 +70,7 @@ def get_texts_labels():
     conn = pymysql.connect(**MYSQL_CONFIG)
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     for index, category in enumerate(CATEGORYS.keys()):
-        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 100'
+        sql = 'select id, content_fenci, category from sohu_news where content_fenci is not null and category=%s limit 1000'
         cursor.execute(sql, category)
         items += cursor.fetchall()
     random.shuffle(items)
@@ -158,7 +158,7 @@ def train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y
     # 如果 validation_split 设置，会从训练数据分割后面0.2的数据做为验证数据集。
     # 启动 TensorBoard，在fit中的callbacks=[tb]
     # tb = TensorBoard(log_dir='/Users/yaochao/logs', histogram_freq=0, write_graph=True, write_images=True)
-    history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=8, batch_size=32)
+    history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=3, batch_size=128)
 
     plot_history(history, pre_filename='cnn_w2v')
     # model.save(TRAINED_MODEL)
