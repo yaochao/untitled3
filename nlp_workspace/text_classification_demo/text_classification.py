@@ -35,6 +35,7 @@ TEST_SPLIT = 0.2
 W2V_MODEL = '/Users/yaochao/python/datasets/downloads/cn.cbow.dim300.bin'
 TRAINED_MODEL = 'cnn.w2v.model'
 
+
 def plot_history(history, pre_filename=''):
     # 训练过程可视化
     loss = history.history['loss']
@@ -58,7 +59,7 @@ def plot_history(history, pre_filename=''):
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.legend(['loss', 'val_loss'], loc='upper right')
-    fig2.savefig(pre_filename+'_loss.png')
+    fig2.savefig(pre_filename + '_loss.png')
 
 
 def get_texts_labels():
@@ -136,11 +137,14 @@ def load_w2v_as_embedding(word_index, input_length):
     return embedding_layer
 
 
-def train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y_validate):
+def train_model_cnn_w2v(word_index, input_length, labels, x_train, y_train, x_validate, y_validate):
     '''
     constructure and train model
-    :return:
     '''
+    embedding_layer = load_w2v_as_embedding(word_index=word_index,
+                                            input_length=input_length)  # 使用word2vec的向量模型来构造embedding_layer
+    # embedding_layer = Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=input_length) # 不使用word2vec的向量模型来构造embedding_layer
+
     model = Sequential()
     model.add(embedding_layer)
     model.add(Dropout(rate=0.2))
@@ -154,35 +158,12 @@ def train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
     print(model.metrics_names)
 
-    # model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=100)
     # 如果 validation_split 设置，会从训练数据分割后面0.2的数据做为验证数据集。
     # 启动 TensorBoard，在fit中的callbacks=[tb]
     # tb = TensorBoard(log_dir='/Users/yaochao/logs', histogram_freq=0, write_graph=True, write_images=True)
-    history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=3, batch_size=128)
-
+    # history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=3, batch_size=128)
+    history = model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=100)
     plot_history(history, pre_filename='cnn_w2v')
-    # model.save(TRAINED_MODEL)
-    return model
-
-
-def train_model_cnn(word_index, sequences, labels, x_train, y_train, x_validate, y_validate):
-    '''
-    constructure and train model
-    :return:
-    '''
-    model = Sequential()
-    model.add(Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=sequences.shape[1]))
-    model.add(Dropout(rate=0.2))
-    model.add(Conv1D(filters=250, kernel_size=3, strides=1, padding='valid', activation='relu'))
-    model.add(MaxPool1D(pool_size=3))
-    model.add(Flatten())
-    model.add(Dense(units=EMBEDDING_DIM, activation='relu'))
-    model.add(Dense(units=labels.shape[1], activation='softmax'))
-    model.summary()
-    plot_model(model, to_file='model.png', show_shapes=True)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
-    print(model.metrics_names)
-    model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=128)
     # model.save(TRAINED_MODEL)
     return model
 
@@ -205,29 +186,8 @@ def main():
     sequences, labels, word_index = texts_labels_tokenizer(texts, labels)
     # 3. 数据分割为，训练集，验证集，测试集
     x_train, y_train, x_validate, y_validate, x_test, y_test = texts_labels_slicer(sequences, labels)
-    # 4. 使用word2vec的向量模型来构造embedding_layer
-    embedding_layer = load_w2v_as_embedding(word_index, input_length=sequences.shape[1])
-    # 5. 构造模型，训练模型
-    model = train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y_validate)
-    # 6. 评估验证模型
-    loss, accuracy = evaluate_model(model, x_test, y_test)
-    print(loss, accuracy)
-
-
-def main2():
-    '''
-    不使用预训练的w2v模型来构造embedding_layer。
-    0.25653166955709455 0.9315
-    :return:
-    '''
-    # 1. 加载文本，标签
-    texts, labels = get_texts_labels()
-    # 2. 文本分词
-    sequences, labels, word_index = texts_labels_tokenizer(texts, labels)
-    # 3. 数据分割为，训练集，验证集，测试集
-    x_train, y_train, x_validate, y_validate, x_test, y_test = texts_labels_slicer(sequences, labels)
     # 4. 构造模型，训练模型
-    model = train_model_cnn(word_index, sequences, labels, x_train, y_train, x_validate, y_validate)
+    model = train_model_cnn_w2v(word_index, sequences.shape[1], labels, x_train, y_train, x_validate, y_validate)
     # 5. 评估验证模型
     loss, accuracy = evaluate_model(model, x_test, y_test)
     print(loss, accuracy)
