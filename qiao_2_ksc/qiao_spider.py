@@ -4,10 +4,18 @@
 
 import requests
 import random
+import pymongo
 
+MONGO_CONFIG = {
+    'host': '127.0.0.1',
+    'port': 27017,
+}
+client = pymongo.MongoClient(**MONGO_CONFIG)
+db = client['datasets']
+collection = db['xam_person_list']
 
 def get_cookie():
-    session_ids = ['8CC270E30438E377A70C68AB9CD2A562.tomcatA1']
+    session_ids = ['377F3049783B764C90A80209BFC7582D.tomcatA1']
     cookie = 'Shinow=xingjinhua; shinow_is_max=0; JSESSIONID={sessionid}'.format(sessionid=random.choice(session_ids))
     return cookie
 
@@ -54,12 +62,15 @@ def get_list():
                 "parameter.endage": "",
                 "page": "{page}".format(page=1),
                 "start": "{start}".format(start=0),
-                "limit": "{limit}".format(limit=26),
+                "limit": "{limit}".format(limit=208339),
                 "parameter.dsn": "",
             },
         )
         page_data = response.json()['resultData']['pageData']
         print(len(page_data))
+        for i in page_data:
+            i['_id'] = i['SERIAL_CODE']
+            collection.insert(i)
         return page_data
     except Exception as e:
         print('HTTP Request failed: {}'.format(e))
@@ -105,4 +116,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    get_list()
