@@ -13,6 +13,8 @@ import numpy as np
 from keras.layers import Embedding, Dropout, Conv1D, MaxPool1D, Flatten, Dense
 from keras.models import Sequential
 from keras.utils import plot_model
+import matplotlib.pyplot as plt
+from keras.callbacks import TensorBoard
 
 MYSQL_CONFIG = {
     'host': '127.0.0.1',
@@ -32,6 +34,31 @@ VALIDATION_SPLIT = 0.15
 TEST_SPLIT = 0.2
 W2V_MODEL = '/Users/yaochao/python/datasets/downloads/cn.cbow.dim300.bin'
 TRAINED_MODEL = 'cnn.w2v.model'
+
+def plot_history(history, pre_filename=''):
+    # 训练过程可视化
+    loss = history.history['loss']
+    acc = history.history['acc']
+    val_loss = history.history['val_loss']
+    val_acc = history.history['val_acc']
+
+    fig1 = plt.figure(1)
+    plt.plot(acc)
+    plt.plot(val_acc)
+    plt.title('model accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.legend(['acc', 'val_acc'], loc='lower right')
+    fig1.savefig(pre_filename + '_acc.png')
+
+    fig2 = plt.figure(2)
+    plt.title('model loss')
+    plt.plot(loss)
+    plt.plot(val_loss)
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend(['loss', 'val_loss'], loc='upper right')
+    fig2.savefig(pre_filename+'_loss.png')
 
 
 def get_texts_labels():
@@ -126,7 +153,14 @@ def train_model_cnn_w2v(embedding_layer, labels, x_train, y_train, x_validate, y
     plot_model(model, to_file='model.png', show_shapes=True)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
     print(model.metrics_names)
-    model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=100)
+
+    # model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=2, batch_size=100)
+    # 如果 validation_split 设置，会从训练数据分割后面0.2的数据做为验证数据集。
+    # 启动 TensorBoard，在fit中的callbacks=[tb]
+    # tb = TensorBoard(log_dir='/Users/yaochao/logs', histogram_freq=0, write_graph=True, write_images=True)
+    history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=8, batch_size=32)
+
+    plot_history(history, pre_filename='cnn_w2v')
     # model.save(TRAINED_MODEL)
     return model
 
