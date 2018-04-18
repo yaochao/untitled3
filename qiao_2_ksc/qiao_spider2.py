@@ -19,7 +19,7 @@ collection_error = db['xam_error']
 
 
 def get_cookie():
-    session_ids = ['D236097C8128FADD8B3266BC1501F529.tomcatA1', '20DABB5471423719ECE8C55961EDC7C3.tomcatA1', '473BD21F51A8EF3893FB5098AA316382.tomcatA1', 'F5FE5C484244F8343197A7E29B97862A.tomcatA1']
+    session_ids = ['A107C99964F20A0991BDE318775152F7.tomcatA1', '65B66E35B4E47E263D0E4428B6BB1E0E.tomcatA1']
     cookie = 'Shinow=xingjinhua; shinow_is_max=0; JSESSIONID={sessionid}'.format(sessionid=random.choice(session_ids))
     return cookie
 
@@ -115,7 +115,7 @@ def get_detail(serial_code, pe_id):
 
 
 def get_all_detail():
-    for i in range(100, 140):
+    for i in range(192, 195):
         print('now:', str([i * 1000, (i + 1) * 1000]))
         cursor = collection_list.find({}, {"_id": 1}).skip((i * 1000)).limit(1000)
         result = list(cursor)
@@ -139,6 +139,27 @@ def get_all_detail():
                 except DuplicateKeyError as e:
                     print(e)
 
+def re_get_error_detail():
+    cursor = collection_detail.find({"sessionInvalid" : "本次会话已过期,请重新登录！！"}, {"_id":1}).limit(24000)
+    result = list(cursor)
+    print(len(result))
+    for i in result:
+        serial_code = i['_id']
+        # 1. 先删除,再重新下载，插入mongo
+        collection_detail.remove({"_id": serial_code})
+
+        try:
+            pe_id = serial_code
+            person_ehr = get_detail(serial_code, pe_id)
+            if not person_ehr:
+                continue
+            person_ehr['_id'] = serial_code
+            print(serial_code, ' - ', person_ehr['person']['pName'])
+            # 2. 插入mongo
+            collection_detail.insert(person_ehr)
+        except Exception as e:
+            print(e)
+
 
 if __name__ == '__main__':
-    get_all_detail()
+    re_get_error_detail()
