@@ -5,6 +5,7 @@
 import requests
 import random
 import pymongo
+from pymongo.errors import DuplicateKeyError
 
 MONGO_CONFIG = {
     'host': '127.0.0.1',
@@ -114,7 +115,7 @@ def get_detail(serial_code, pe_id):
 
 
 def get_all_detail():
-    for i in range(180, 190):
+    for i in range(100, 140):
         print('now:', str([i * 1000, (i + 1) * 1000]))
         cursor = collection_list.find({}, {"_id": 1}).skip((i * 1000)).limit(1000)
         result = list(cursor)
@@ -126,14 +127,17 @@ def get_all_detail():
                 if not person_ehr:
                     continue
                 person_ehr['_id'] = serial_code
-                collection_detail.insert(person_ehr)
                 print(serial_code, ' - ', person_ehr['person']['pName'])
+                collection_detail.insert(person_ehr)
             except Exception as e:
-                collection_error.insert({
-                    '_id': serial_code,
-                    'error': str(e),
-                    'function': 'get_all_detail'
-                })
+                try:
+                    collection_error.insert({
+                        '_id': serial_code,
+                        'error': str(e),
+                        'function': 'get_all_detail'
+                    })
+                except DuplicateKeyError as e:
+                    print(e)
 
 
 if __name__ == '__main__':
