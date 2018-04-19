@@ -19,7 +19,7 @@ collection_error = db['xam_error']
 
 
 def get_cookie():
-    session_ids = ['A107C99964F20A0991BDE318775152F7.tomcatA1', '65B66E35B4E47E263D0E4428B6BB1E0E.tomcatA1']
+    session_ids = ['C8CB4AC1B4622569FCE61A828B0EB74B.tomcatA1']
     cookie = 'Shinow=xingjinhua; shinow_is_max=0; JSESSIONID={sessionid}'.format(sessionid=random.choice(session_ids))
     return cookie
 
@@ -102,6 +102,10 @@ def get_detail(serial_code, pe_id):
                 "serialCode": "{}".format(serial_code),
                 "peId": "{}".format(pe_id),
             },
+            # proxies={
+            #     "http": "http://127.0.0.1:1087",
+            #     "https": "http://127.0.0.1:1087",
+            # }
         )
         person_ehr = response.json()
         return person_ehr
@@ -139,8 +143,9 @@ def get_all_detail():
                 except DuplicateKeyError as e:
                     print(e)
 
+
 def re_get_error_detail():
-    cursor = collection_detail.find({"sessionInvalid" : "本次会话已过期,请重新登录！！"}, {"_id":1}).limit(24000)
+    cursor = collection_detail.find({"sessionInvalid": "本次会话已过期,请重新登录！！"}, {"_id": 1})
     result = list(cursor)
     print(len(result))
     for i in result:
@@ -153,12 +158,46 @@ def re_get_error_detail():
             person_ehr = get_detail(serial_code, pe_id)
             if not person_ehr:
                 continue
+            if 'sessionInvalid' in person_ehr.keys():
+                print(person_ehr['sessionInvalid'])
+                break
             person_ehr['_id'] = serial_code
             print(serial_code, ' - ', person_ehr['person']['pName'])
             # 2. 插入mongo
             collection_detail.insert(person_ehr)
         except Exception as e:
             print(e)
+
+
+def get_diff_list_detail():
+    cursor = collection_list.find({},{'_id':1})
+    result = list(cursor)
+    list_ids = [i['_id'] for i in result]
+
+    cursor2 = collection_detail.find({}, {'_id': 1})
+    result2 = list(cursor2)
+    detail_ids = [i['_id'] for i in result2]
+
+    for i in list_ids:
+        if i in detail_ids[:-1]:
+            detail_ids.remove(i)
+        else:
+            try:
+                serial_code = i
+                pe_id = serial_code
+                person_ehr = get_detail(serial_code, pe_id)
+                if not person_ehr:
+                    continue
+                if 'sessionInvalid' in person_ehr.keys():
+                    print(person_ehr['sessionInvalid'])
+                    break
+                person_ehr['_id'] = serial_code
+                print(serial_code, ' - ', person_ehr['person']['pName'])
+                # 2. 插入mongo
+                collection_detail.insert(person_ehr)
+            except Exception as e:
+                print(e)
+
 
 
 if __name__ == '__main__':

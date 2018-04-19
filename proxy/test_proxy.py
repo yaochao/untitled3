@@ -15,16 +15,20 @@ def get_xici():
     if response.status_code == 200:
         selector = etree.HTML(response.text)
         trs = selector.xpath('//tr')
-        with open('proxy.txt', 'w') as f:
-            for tr in trs[1:]:
-                ip = tr.xpath('td[2]/text()')[0]
-                port = tr.xpath('td[3]/text()')[0]
-                schema = tr.xpath('td[6]/text()')[0]
-                schema = str.lower(schema)
-                result = test_ip(schema=schema, ip=ip, port=port)
-                if result:
-                    print(schema + '://' + ip + ':' + port + '...ok')
-                    f.write(schema + '://' + ip + ':' + port + '\n')
+        http_proxies = []
+        https_proxies = []
+        for tr in trs[1:]:
+            ip = tr.xpath('td[2]/text()')[0]
+            port = tr.xpath('td[3]/text()')[0]
+            schema = tr.xpath('td[6]/text()')[0]
+            schema = str.lower(schema)
+            result = test_ip(schema=schema, ip=ip, port=port)
+            if result:
+                if schema == 'http':
+                    http_proxies.append({schema: schema + '://' + ip + ':' + port })
+                else:
+                    https_proxies.append({schema: schema + '://' + ip + ':' + port })
+        return http_proxies, https_proxies
 
 
 def test_ip(schema, ip, port):
@@ -46,8 +50,4 @@ def test_ip(schema, ip, port):
 
 
 if __name__ == '__main__':
-    schema = 'http'
-    ip = '118.114.77.47'
-    port = '8080'
-    # print(test_ip(schema, ip, port))
     get_xici()

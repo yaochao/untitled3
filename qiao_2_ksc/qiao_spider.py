@@ -19,7 +19,7 @@ collection_error = db['xam_error']
 
 
 def get_cookie():
-    session_ids = ['A107C99964F20A0991BDE318775152F7.tomcatA1', '65B66E35B4E47E263D0E4428B6BB1E0E.tomcatA1']
+    session_ids = ['C8CB4AC1B4622569FCE61A828B0EB74B.tomcatA1']
     cookie = 'Shinow=xingjinhua; shinow_is_max=0; JSESSIONID={sessionid}'.format(sessionid=random.choice(session_ids))
     return cookie
 
@@ -140,7 +140,7 @@ def get_all_detail():
                     print(e)
 
 def re_get_error_detail():
-    cursor = collection_detail.find({"sessionInvalid" : "本次会话已过期,请重新登录！！"}, {"_id":1}).skip(24000)
+    cursor = collection_detail.find({"sessionInvalid" : "本次会话已过期,请重新登录！！"}, {"_id":1})
     result = list(cursor)
     print(len(result))
     for i in result:
@@ -164,5 +164,97 @@ def re_get_error_detail():
             print(e)
 
 
+def get_diff_list_detail():
+    cursor = collection_list.find({},{'_id':1})
+    result = list(cursor)
+    list_ids = [i['_id'] for i in result]
+
+    cursor2 = collection_detail.find({}, {'_id': 1})
+    result2 = list(cursor2)
+    detail_ids = [i['_id'] for i in result2]
+
+    for i in list_ids:
+        if i in detail_ids[:-1]:
+            detail_ids.remove(i)
+        else:
+            try:
+                serial_code = i
+                pe_id = serial_code
+                person_ehr = get_detail(serial_code, pe_id)
+                if not person_ehr:
+                    continue
+                if 'sessionInvalid' in person_ehr.keys():
+                    print(person_ehr['sessionInvalid'])
+                    break
+                person_ehr['_id'] = serial_code
+                print(serial_code, ' - ', person_ehr['person']['pName'])
+                # 2. 插入mongo
+                collection_detail.insert(person_ehr)
+            except Exception as e:
+                print(e)
+
+
+def get_diff_list_detail2():
+    # listid:1679238 对应的detailid:1929114
+    # listid:1165998 对应的detailid:1929081
+    # listid:546203 对应的detailid:1929306
+    # listid:402000 对应的detailid:1929275
+    # listid:343894 对应的detailid:1929168
+    ids = ['1929306', '1929275', '1929168']
+
+    for i in ids:
+        try:
+            serial_code = i
+            pe_id = serial_code
+            person_ehr = get_detail(serial_code, pe_id)
+            if not person_ehr:
+                continue
+            if 'sessionInvalid' in person_ehr.keys():
+                print(person_ehr['sessionInvalid'])
+                break
+            person_ehr['_id'] = serial_code
+            print(serial_code, ' - ', person_ehr['person']['pName'])
+            collection_detail.insert(person_ehr)
+        except Exception as e:
+            print(e)
+
+
+def data_verify():
+    '''
+    数据完整性校验
+    :return:
+    '''
+    cursor = collection_list.find({}, {"_id":1, "P_NAME":1})
+    result = list(cursor)
+    for i in result:
+        _id = i['_id']
+        P_NAME = i['P_NAME']
+        cursor2 = collection_detail.find({"_id": _id}, {"person":1})
+        result2 = list(cursor2)
+        if result2:
+            if result2[0]['person']['pName'] == P_NAME:
+                continue
+            print('list:', P_NAME, 'detail:', result2[0]['person']['pName'], _id)
+        else:
+            print('detail中找不到id:', _id)
+    # 结果, 总结：姓名基本都是空格导致，有一个是输入错误。
+    # 找不到的5条，已经全部在detail，原因是list和detail的SERIAL_ID对应不上。
+    # '''
+    # list:  出伦巴根 detail: 出伦巴根 1924911
+    # list: 阿斯瀚  detail: 阿斯瀚 1913487
+    # list:   关嘉琪 detail: 关嘉琪 1879116
+    # list: 	玉晓 detail: 玉晓 1871845
+    # list: 赵红全	 detail: 赵红全 1871838
+    # detail中找不到id: 1679238
+    # list:  包世杰 detail: 包世杰 1193433
+    # list:  代伟 detail: 代伟 1191603
+    # detail中找不到id: 1165998
+    # detail中找不到id: 546203
+    # list: 叶宝小  detail: 叶宝小 540352
+    # detail中找不到id: 402000
+    # list: 韩金花 detail: 韩金虎 395496
+    # detail中找不到id: 343894
+    # '''
+
 if __name__ == '__main__':
-    get_all_detail()
+    data_verify()
