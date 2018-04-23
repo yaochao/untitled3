@@ -5,6 +5,7 @@
 
 import pymongo
 import pymysql
+from .stats_spider import get_village_code_map
 from pprint import pprint
 
 MONGO_CONF = {
@@ -20,6 +21,21 @@ MYSQL_CONF = {
     'charset': 'utf8',
     'cursorclass': pymysql.cursors.DictCursor,
 }
+
+# 村子级别的行政区划编码映射字典
+village_code_map = get_village_code_map()
+
+
+def map_village_code(person):
+    '''
+    通过村子名称，返回新的行政区划编码
+    :param person:
+    :return:
+    '''
+    village_name = person['villageText']
+    town_code = person['ehrId'][:9]
+    new_village_code = village_code_map[town_code][village_name]
+    return new_village_code
 
 
 def main():
@@ -46,7 +62,7 @@ def main():
         JTDZ2 = addrcodePresent[:4]
         JTDZ3 = addrcodePresent[:6]
         JTDZ4 = addrcodePresent[:9]
-        JTDZ5 = addrcodePresent[:12]  # TODO JTDZ5需要做映射 行政区划码到村子级别
+        JTDZ5 = map_village_code(person)  # TODO JTDZ5需要做映射 行政区划码到村子级别
 
         JDSQ = person['createUnit']
         JDRY = person['creator']
@@ -92,14 +108,16 @@ def main():
 
         # sql拼装
         sql = 'INSERT INTO zjb_grda (EMPI,XM,XZZ,HJDZ,LXDH,JTDZ1,JTDZ2,JTDZ3,JTDZ4,JTDZ5,JDSQ,JDRY,JDRYMC,JDRYID,SQBM,ZRYS,ZRYSID,JDRQ,DAH,BRDH,SFZH,XB,CSRQ,LXRXM,LXRDH,GZDW,CZLX,MZ,XX,RH,XL,ZYLB,HYZK,ISET,ISYCF,ISLNR,ISTNB,ISGXY,ISJSB,ISFJH,ISPKRK) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-        cursor.execute(sql, (EMPI,XM,XZZ,HJDZ,LXDH,JTDZ1,JTDZ2,JTDZ3,JTDZ4,JTDZ5,JDSQ,JDRY,JDRYMC,JDRYID,SQBM,ZRYS,ZRYSID,JDRQ,DAH,BRDH,SFZH,XB,CSRQ,LXRXM,LXRDH,GZDW,CZLX,MZ,XX,RH,XL,ZYLB,HYZK,ISET,ISYCF,ISLNR,ISTNB,ISGXY,ISJSB,ISFJH,ISPKRK))
+        cursor.execute(sql, (
+            EMPI, XM, XZZ, HJDZ, LXDH, JTDZ1, JTDZ2, JTDZ3, JTDZ4, JTDZ5, JDSQ, JDRY, JDRYMC, JDRYID, SQBM, ZRYS,
+            ZRYSID,
+            JDRQ, DAH, BRDH, SFZH, XB, CSRQ, LXRXM, LXRDH, GZDW, CZLX, MZ, XX, RH, XL, ZYLB, HYZK, ISET, ISYCF, ISLNR,
+            ISTNB, ISGXY, ISJSB, ISFJH, ISPKRK))
         # 每1000次循环，commit一次
         counter += 1
         if counter == 1:
             connect.commit()
             counter = 0
-
-
 
 
 if __name__ == '__main__':
