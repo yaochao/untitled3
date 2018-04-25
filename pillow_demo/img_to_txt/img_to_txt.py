@@ -10,7 +10,8 @@ import sys
 
 OUT_IMG = 'out.txt'
 
-abc = '##@@MMBB88NNHHOOGGPPEEXXFFVVYY22ZZCC77LLjjll11rrii;;;:::....  '
+abc = '@@@@##MMBB88NNHHOOGGPPEEXFFVVYY22ZZCC77LLjjll11rrriii;;;;:::::.....   '
+# abc = '@MNHQ$OC?7>!:-;. '
 l = 256 / len(abc)
 
 
@@ -35,16 +36,22 @@ def remove_transparency(im, bg_colour=(255, 255, 255)):
 def pixel_to_black(fp, weight):
     try:
         img = Image.open(fp)
-    except FileNotFoundError:
-        print('请输入正确的路径或URL')
+    except:
+        print('请输入正确的图片路径或URL😝')
         return
-    # img = remove_transparency(img)
+    img = remove_transparency(img)
     img = img.convert("L")
     im_w, im_h = img.size
     img = np.array(img)
     h, w = img.shape
-    t_w = weight  # 最大字宽
-    t_h = weight / (im_w / im_h) / 2  # 最大字高
+    # 如果weight超过像素
+    weight_w = weight if w >= weight else w
+    weight_h = weight if h >= weight else h
+    weight = weight_w if weight_w < weight_h else weight_h
+    # 最大字宽
+    t_w = weight
+    # 最大字高
+    t_h = weight / (im_w / im_h) / 2
     width_times = int(w / t_w) if int(w / t_w) != 0 else 1
     high_times = int(h / t_h) if int(h / t_h) != 0 else 1
 
@@ -89,6 +96,7 @@ def paint(uri, weight):
 
 
 def get_img(url):
+    print('正在加载图片☺️')
     response = requests.get(url)
     if response.status_code == 200:
         with open('in.png', 'wb') as f:
