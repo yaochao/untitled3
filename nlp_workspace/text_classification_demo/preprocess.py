@@ -7,8 +7,11 @@ import xmltodict
 from gzip import GzipFile
 import pymysql
 import jieba.posseg as pseg
+import json
 
 # 原文链接：https://www.jianshu.com/p/e21b570a6b8a
+# 文本预处理
+# 将下载的原始数据进行转码，然后给文本标类别的标签，然后制作训练与测试数据，然后控制文本长度，分词，去标点符号
 
 STOPWORDS = '/Users/yaochao/python/datasets/stopwords/stopwords.txt'
 stopwords = open(STOPWORDS, encoding='utf-8').read().split('\n')
@@ -24,17 +27,16 @@ mysql_config = {
     'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',
-    'passwd': '',
+    'passwd': 'toor',
     'db': 'datasets',
     'charset': 'utf8',
     'cursorclass': pymysql.cursors.DictCursor
 }
 
 
-def text_preprocess():
+def text_import_mysql_mongo_file():
     '''
-    文本预处理
-    将下载的原始数据进行转码，然后给文本标类别的标签，然后制作训练与测试数据，然后控制文本长度，分词，去标点符号
+    xml导入 MySQL，MongoDB，File
     :return:
     '''
     content = xmltodict.parse(GzipFile(news_path))
@@ -59,15 +61,11 @@ def text_preprocess():
     conn.close()
 
 
-def text_analysis():
-    conn = pymysql.connect(**mysql_config)
-    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = 'SELECT * FROM sohu_news WHERE category IS NOT NULL'
-    cursor.execute(sql)
-    print(cursor.fetchone())
-
-
-def text_fenci():
+def text_fenci_sohu_news():
+    '''
+    把文章字段进行分词，词语之间通过空格连接，然后更新到数据库对应的content_fenci字段。
+    :return:
+    '''
     conn = pymysql.connect(**mysql_config)
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = 'SELECT * FROM sohu_news WHERE category IS NOT NULL AND content_fenci IS NULL AND category in ("business")'
@@ -85,7 +83,43 @@ def text_fenci():
     conn.close()
 
 
+def text_fenci_bw_news():
+    '''
+    把文章字段进行分词，词语之间通过空格连接，然后更新到数据库对应的content_fenci字段。
+    :return:
+    '''
+    conn = pymysql.connect(**mysql_config)
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    TAGS = {'高血压': 1, '糖尿病': 2, '儿童': 3, '孕产妇': 4, '中药': 5, '养生': 6}
+
+    for tag in TAGS.keys():
+        sql = 'SELECT id, news_article, news_title FROM bw_news WHERE news_tags=%s LIMIT 2000'
+        cursor.execute(sql, (tag))
+        while True:
+            try:
+                item = cursor.fetchone()
+                id = item['id']
+                print(id)
+                news_article = item['news_article']
+                items = json.loads(news_article)
+                content = ''
+                for i in items:
+                    if i['type'] == 'newsPara':
+                        content += i['content']
+
+                news_title = item['news_title']
+                content_fenci = fenci_nostopwords(news_title + ' ' + content)
+                sql = 'UPDATE bw_news SET content_fenci=%s WHERE id=%s'
+                cursor.execute(sql, (content_fenci, id))
+                conn.commit()
+            except:
+                break
+    cursor.close()
+    conn.close()
+
+
 def fenci_nostopwords(text):
+    ''' 分词功能模块，去掉词性标注为x(标点符号等)的字符，去掉停用词 '''
     words = pseg.cut(text)
     words2 = []
     for w in words:
@@ -96,5 +130,4 @@ def fenci_nostopwords(text):
 
 
 if __name__ == '__main__':
-    # text_preprocess()
-    text_fenci()
+    text_fenci_bw_news()

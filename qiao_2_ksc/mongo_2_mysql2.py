@@ -48,12 +48,13 @@ def main():
         for i in person['ehrAllergyl']:
             YWGM = i['allergyId'] + ',' + YWGM
             YWGMBZ = i['otherAllergy']
+        YWGM = YWGM if YWGM else None
 
         # 暴露史 #TODO 多个的情况未考虑, 为空情况
-        BLS = person['ehrExposure'][0]['exposureId'] if person['ehrExposure'] else None
         BLS = ''
         for i in person['ehrExposure']:
-            YWGM = i['exposureId'] + ',' + YWGM
+            BLS = i['exposureId'] + ',' + BLS
+        BLS = BLS if BLS else None
 
         # 既往史疾病 #TODO 多个的情况未考虑
         ehrPastSicks = person['ehrPastSicks']
