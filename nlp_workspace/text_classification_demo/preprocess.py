@@ -30,7 +30,6 @@ mysql_config = {
     'passwd': 'toor',
     'db': 'datasets',
     'charset': 'utf8',
-    'cursorclass': pymysql.cursors.DictCursor
 }
 
 
@@ -118,6 +117,43 @@ def text_fenci_bw_news():
     conn.close()
 
 
+def text_fenci_bw_news2():
+    '''
+    把文章字段进行分词，词语之间通过空格连接，然后更新到数据库对应的content_fenci字段。
+    :return:
+    '''
+    conn = pymysql.connect(**mysql_config)
+    conn2 = pymysql.connect(**mysql_config)
+    cursor = conn.cursor(cursor=pymysql.cursors.SSDictCursor)
+    cursor2 = conn2.cursor(cursor=pymysql.cursors.SSDictCursor)
+
+    sql = 'SELECT id, news_article, news_title FROM bw_news WHERE content_fenci IS NULL'
+    cursor.execute(sql)
+    counter = 1
+    item = cursor.fetchone()
+    while item:
+        print(counter)
+        id = item['id']
+        news_article = item['news_article']
+        items = json.loads(news_article)
+        content = ''
+        for i in items:
+            if i['type'] == 'newsPara':
+                content += i['content']
+        news_title = item['news_title']
+        content_fenci = fenci_nostopwords(news_title + ' ' + content)
+        sql = 'UPDATE bw_news SET content_fenci=%s WHERE id=%s'
+        cursor2.execute(sql, (content_fenci, id))
+        if not counter % 100:
+            conn2.commit()
+        counter += 1
+        item = cursor.fetchone()
+
+    conn2.commit()
+    conn.close()
+    conn2.close()
+
+
 def fenci_nostopwords(text):
     ''' 分词功能模块，去掉词性标注为x(标点符号等)的字符，去掉停用词 '''
     words = pseg.cut(text)
@@ -130,4 +166,4 @@ def fenci_nostopwords(text):
 
 
 if __name__ == '__main__':
-    text_fenci_bw_news()
+    text_fenci_bw_news2()

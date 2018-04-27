@@ -1,5 +1,8 @@
 
 # Created by https://www.gitignore.io/api/macos,python,pycharm
+#
+*.h5
+*.json
 
 ### macOS ###
 *.DS_Store

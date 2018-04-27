@@ -11,16 +11,14 @@ import numpy as np
 import pymysql
 from numpy import linalg as la
 from utils import cut_sentence
-# 配置好 logging，gensim 会打印出日志
 import logging
 import os
-import xlrd
 
+# 配置好 logging，gensim 会打印出日志
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 base_path = '/Users/yaochao/python/datasets/'
 userdict_path = os.path.join(base_path, 'user_dicts/online_and_icd_and_mesh.txt')
-stopwords_path = os.path.join(base_path, 'user_dicts/stopwords5.txt')
 file_path_100 = os.path.join(base_path, 'haodf_chats_detail_100W_pre.csv.word2vec_model')
 file_path_1000 = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.word2vec_model')
 file_path_1000_stopwords = os.path.join(base_path, 'haodf_chats_detail_1000W_pre.csv.w2v_model')
@@ -29,16 +27,17 @@ file_path_news_baidubaike_novel = os.path.join(base_path,
                                                'downloads/news_12g_baidubaike_20g_novel_90g_embedding_64.model')
 file_path_news_baidubaike_novel_dim128 = '/Users/yaochao/python/datasets/downloads/news12g_bdbk20g_nov90g/news12g_bdbk20g_nov90g_dim128.bin'
 file_path_baike_skipgram = os.path.join(base_path, 'downloads/cn.skipgram.bin')
-file_path = os.path.join(base_path, 'abaike_10000.word2vec_model')
+
+stopwords_path = os.path.join(base_path, 'stopwords/stopwords.txt')
+model_path = os.path.join(base_path, 'bwnews_200dim_10000.w2v')
 mysql_config = {
     'host': '127.0.0.1',
-    # 'host': '172.31.48.29',
-    'port': 8096,
-    'user': 'spider',
-    'password': '123456',
-    'db': 'spider',
+    'port': 3306,
+    'user': 'root',
+    'password': 'toor',
+    'db': 'datasets',
     'charset': 'utf8',
-    'cursorclass': pymysql.cursors.DictCursor,
+    'cursorclass': pymysql.cursors.SSDictCursor,
 }
 
 
@@ -91,28 +90,29 @@ class MysentencesFile(object):
 
 class MysentencesMySQL(object):
     def __init__(self):
-        jieba.load_userdict(userdict_path)
         self.conn = pymysql.connect(**mysql_config)
         self.cursor = self.conn.cursor()
-        sql = 'SELECT `content` FROM bw_news'
+        sql = 'SELECT `content_fenci` FROM bw_news'
+        # sql_random = 'SELECT `content_fenci` FROM bw_news WHERE id >= (SELECT FLOOR(RAND() * (SELECT MAX(id) FROM bw_news))) LIMIT 10000'
         self.cursor.execute(sql)
         self.stopwords = stopwordslist(stopwords_path)
 
     def __iter__(self):
-        while True:
-            try:
-                item = self.cursor.fetchone()
-                text = item['text']
-                sentences = cut_sentence(text)
-                for sentence in sentences:
-                    words = list(jieba.cut(sentence))
-                    words2 = []
-                    for word in words:
-                        if word not in self.stopwords:
-                            words2.append(word)
-                    yield words2
-            except Exception:
-                break
+        '''
+        迭代器需要实现的方法: __iter__
+        :return:
+        '''
+        item = self.cursor.fetchone()
+        while item:
+            content_fenci = item['content_fenci']
+            words = content_fenci.split()
+            words2 = []
+            for word in words:
+                if word not in self.stopwords:
+                    words2.append(word)
+            yield words2
+
+            item = self.cursor.fetchone()
 
     def __del__(self):
         self.cursor.close()
@@ -123,8 +123,8 @@ class MysentencesMySQL(object):
 def train_word2vec():
     start = time.time()
     sentences = MysentencesMySQL()
-    model = gensim.models.Word2Vec(sentences=sentences, size=100, min_count=3)
-    model.save(file_path)
+    model = gensim.models.Word2Vec(sentences=sentences, size=200, min_count=3)
+    model.save(model_path)
     print('cost time: {}'.format(time.time() - start))
 
 
@@ -149,20 +149,14 @@ def stopwordslist(filepath):
 
 def use_model():
     # load the original Google word2vec model, use the KeyedVectors.load_word2vec_format()
-    model_cbow = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_cbow, binary=True, encoding='utf-8', unicode_errors='ignore')
-    # model_skipgram = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_baike_skipgram, binary=True, encoding='utf-8', unicode_errors='ignore')
-    model_100 = gensim.models.Word2Vec.load(file_path_100)
-    model_1000 = gensim.models.Word2Vec.load(file_path_1000)
-    model_1000_stopwords = gensim.models.Word2Vec.load(file_path_1000_stopwords)
-    # model_news_baidubaike_novel = gensim.models.Word2Vec.load(file_path_news_baidubaike_novel_dim128)
-    # model_news_baidubaike_novel = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_news_baidubaike_novel_dim128, binary=True, encoding='utf-8', unicode_errors='ignore')
-    # print('你好' in model)
-    word = '近视'
-    print('100     ', model_100.wv.most_similar(word, topn=5))
-    print('1000    ', model_1000.wv.most_similar(word, topn=5))
-    print('1000sw  ', model_1000_stopwords.wv.most_similar(word, topn=5))
-    print('baike   ', model_cbow.wv.most_similar(word, topn=5))
-    # print('news_baidubaike_novel   ', model_news_baidubaike_novel.wv.most_similar(word, topn=5))
+    # print('你好' in model) 判断'你好'的词向量是否在model中。
+    model = gensim.models.KeyedVectors.load_word2vec_format(fname=file_path_news_baidubaike_novel_dim128, binary=True, encoding='utf-8', unicode_errors='ignore')
+
+
+    a = gensim.models.Word2Vec.load(model_path)
+    word = '儿童'
+    similar_word = model.wv.most_similar(word, topn=5)
+    print('{}的近义词：{}'.format(word, similar_word))
     # print(model.wv.similarity('中国', '北京'))
     # print(cos_similarity(model['中国'], model['北京']))
 

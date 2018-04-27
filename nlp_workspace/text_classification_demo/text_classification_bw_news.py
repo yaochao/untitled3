@@ -11,7 +11,7 @@ from keras.utils import to_categorical
 import gensim
 import numpy as np
 from keras.layers import Embedding, Dropout, Conv1D, MaxPool1D, Flatten, Dense
-from keras.models import Sequential
+from keras.models import Sequential, model_from_json, load_model
 from keras.utils import plot_model
 import matplotlib.pyplot as plt
 from keras.callbacks import TensorBoard
@@ -27,13 +27,16 @@ MYSQL_CONFIG = {
 }
 TAGS = {'高血压': 1, '糖尿病': 2, '儿童': 3, '孕产妇': 4, '中药': 5, '养生': 6}
 MAX_SEQUENCE_LENGTH = 200
-EMBEDDING_DIM = 100
-TRAIN_SPLIT = 0.6
+EMBEDDING_DIM = 300
+TRAIN_SPLIT = 0.8
+
 VALIDATION_SPLIT = 0.2
-TEST_SPLIT = 0.2
+BATCH_SIZE = 128
+EPOCHS = 10
+
 W2V_MODEL = '/Users/yaochao/python/datasets/downloads/cn.cbow.dim300.bin'
 W2V_MODEL2 = '/Users/yaochao/python/datasets/haodf_chats_detail_1000W_pre.csv.w2v_model'
-TRAINED_MODEL = 'cnn.w2v.model'
+TRAINED_MODEL = 'cnn.w2v.tf.200len.model.h5'
 
 
 def plot_history(history, pre_filename=''):
@@ -76,6 +79,7 @@ def get_texts_labels():
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     for tag in TAGS.keys():
         sql = 'select content_fenci, news_tags from bw_news where content_fenci is not null and news_tags=%s and status=1 limit 2000'
+        sql = 'select content_fenci, news_tags from bw_news where content_fenci is not null and news_tags=%s limit 5000'
         cursor.execute(sql, tag)
         items += cursor.fetchall()
     random.shuffle(items)
@@ -111,25 +115,21 @@ def texts_labels_slicer(texts, labels):
     :return:
     '''
     part1 = int(len(texts) * TRAIN_SPLIT)
-    part2 = int(len(texts) * (TRAIN_SPLIT + VALIDATION_SPLIT))
     train_texts = texts[:part1]
-    validate_texts = texts[part1:part2]
-    test_texts = texts[part2:]
+    test_texts = texts[part1:]
     train_labels = labels[:part1]
-    validate_labels = labels[part1:part2]
-    test_labels = labels[part2:]
+    test_labels = labels[part1:]
     print('train: ', len(train_texts))
-    print('validate: ', len(validate_texts))
     print('test: ', len(test_texts))
-    return train_texts, train_labels, validate_texts, validate_labels, test_texts, test_labels
+    return train_texts, train_labels, test_texts, test_labels
 
 
 def load_w2v_as_embedding(word_index, input_length):
     '''
     use w2v as embedding
     '''
-    # w2v_model = gensim.models.KeyedVectors.load_word2vec_format(W2V_MODEL, binary=True, unicode_errors='ignore')
-    w2v_model = gensim.models.Word2Vec.load(W2V_MODEL2)
+    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(W2V_MODEL, binary=True, unicode_errors='ignore')
+    # w2v_model = gensim.models.Word2Vec.load(W2V_MODEL2)
     embedding_metrix = np.zeros((len(word_index) + 1, EMBEDDING_DIM))
     not_in_w2v = 0
     for word, index in word_index.items():
@@ -144,12 +144,14 @@ def load_w2v_as_embedding(word_index, input_length):
     return embedding_layer
 
 
-def train_model_cnn_w2v(word_index, input_length, labels, x_train, y_train, x_validate, y_validate):
+def train_model_cnn_w2v(word_index, input_length, labels, x_train, y_train):
     '''
     constructure and train model
     '''
-    embedding_layer = load_w2v_as_embedding(word_index=word_index, input_length=input_length)  # 使用word2vec的向量模型来构造embedding_layer
-    # embedding_layer = Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=input_length) # 不使用word2vec的向量模型来构造embedding_layer
+    # 使用word2vec的向量模型来构造embedding_layer
+    embedding_layer = load_w2v_as_embedding(word_index=word_index,input_length=input_length)
+    # 不使用word2vec的向量模型来构造embedding_layer
+    # embedding_layer = Embedding(input_dim=len(word_index) + 1, output_dim=EMBEDDING_DIM, input_length=input_length)
 
     model = Sequential()
     model.add(embedding_layer)
@@ -167,10 +169,16 @@ def train_model_cnn_w2v(word_index, input_length, labels, x_train, y_train, x_va
     # 如果 validation_split 设置，会从训练数据分割后面0.2的数据做为验证数据集。
     # 启动 TensorBoard，在fit中的callbacks=[tb]
     # tb = TensorBoard(log_dir='/Users/yaochao/logs', histogram_freq=0, write_graph=True, write_images=True)
-    # history = model.fit(x=x_train, y=y_train, validation_split=0.2, epochs=3, batch_size=128)
-    history = model.fit(x=x_train, y=y_train, validation_data=(x_validate, y_validate), epochs=10, batch_size=100)
+    history = model.fit(x=x_train, y=y_train, validation_split=VALIDATION_SPLIT, epochs=EPOCHS, batch_size=BATCH_SIZE)
     plot_history(history, pre_filename='bwnews_cnn_w2v')
-    # model.save(TRAINED_MODEL)
+    # # 保存模型1,既保存模型信息又保存weight
+    # model_json = model.to_json()
+    # with open(TRAINED_MODEL+'.json', 'w' ) as f:
+    #     f.write(model_json)
+    # model.save_weights(TRAINED_MODEL)
+
+    # 保存模型2，只保存部分信息
+    model.save(TRAINED_MODEL)
     return model
 
 
@@ -181,7 +189,7 @@ def evaluate_model(model, x_test, y_test):
     return model.evaluate(x=x_test, y=y_test)
 
 
-def main():
+def train_model():
     '''
     使用预训练的w2v模型来构造embedding_layer。
     :return:
@@ -191,13 +199,58 @@ def main():
     # 2. 单词映射，单词tokenize化
     sequences, labels, word_index = texts_labels_tokenizer(texts, labels)
     # 3. 数据分割为，训练集，验证集，测试集
-    x_train, y_train, x_validate, y_validate, x_test, y_test = texts_labels_slicer(sequences, labels)
+    x_train, y_train, x_test, y_test = texts_labels_slicer(sequences, labels)
     # 4. 构造模型，训练模型
-    model = train_model_cnn_w2v(word_index, MAX_SEQUENCE_LENGTH, labels, x_train, y_train, x_validate, y_validate)
+    model = train_model_cnn_w2v(word_index, MAX_SEQUENCE_LENGTH, labels, x_train, y_train)
     # 5. 评估验证模型
     loss, accuracy = evaluate_model(model, x_test, y_test)
     print(loss, accuracy)
 
+def get_texts_labels2():
+    '''
+    load texts and labels.
+    :return:
+    '''
+    items = []
+    conn = pymysql.connect(**MYSQL_CONFIG)
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    # sql = 'select content_fenci, news_tags from bw_news where id >= (select floor(rand() * (select max(id) from bw_news))) limit 100'
+    sql = 'select content_fenci, news_tags from bw_news where `status`=1'
+    cursor.execute(sql)
+    items += cursor.fetchall()
+    random.shuffle(items)
+    random.shuffle(items)
+    print('1.一共有{}条数据'.format(len(items)))
+    texts = [x['content_fenci'] for x in items]
+    labels = [TAGS[x['news_tags']] for x in items]
+    return texts, labels
+
+
+def use_model():
+    # 1. 加载model
+    # 加载模型1，加载json model
+    # with open(TRAINED_MODEL+'.json') as f:
+    #     model_json = f.read()
+    #     model = model_from_json(model_json)
+    #     model.load_weights(TRAINED_MODEL)
+    #     model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['acc'])
+    # 加载模型2，加载model
+    model = load_model(TRAINED_MODEL)
+    # 2. 加载文章
+    texts, labels = get_texts_labels2()
+    # 3. 把加载的文章tokenize话
+    tk = Tokenizer()
+    tk.fit_on_texts(texts)
+    sequences = tk.texts_to_sequences(texts)
+    sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
+    # 4. 预测结果
+    prediction_class = model.predict_classes(x=np.array(sequences), batch_size=BATCH_SIZE)
+    counter = 0
+    for idx ,i in enumerate(prediction_class):
+        if i == labels[idx]:
+            counter += 1
+    print(counter)
 
 if __name__ == '__main__':
-    main()
+    # train_model()
+    use_model()
