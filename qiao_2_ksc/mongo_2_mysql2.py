@@ -31,7 +31,7 @@ def main():
     db = client.get_database('datasets')
     collection_detail = db.get_collection('xam_person_detail')
     # result_cursor = collection_detail.find({"_id": "2762"})
-    result_cursor = collection_detail.find().limit(1000)
+    result_cursor = collection_detail.find()
     counter = 0
     for i in result_cursor:
 
@@ -161,35 +161,62 @@ def main():
             for i in livestockBar:
                 cursor.execute(sql, (EMPI, LX, i, PRJ))
 
+        # 既往史疾病
+        ehrPastSicks = person['ehrPastSicks']
+        if ehrPastSicks:
+            LX = 1
+            MC_list = ['无','高血压','糖尿病','冠心病','慢性阻塞性肺病','恶性肿瘤','脑卒中','严重精神障碍','肺结核','肝炎','其他法定传染病','职业病','其他']
+            sql = 'INSERT INTO zjb_grda_fz_jwsddd (EMPI,LX,BM,MC,RQ,BZ,PRJ) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+            for i in ehrPastSicks:
+                optionId = i['optionId']
+                diagnosesDate = i['diagnosesDate']
+                pastName = i['pastName']
+                MC = MC_list[int(optionId)-1]
+                cursor.execute(sql, (EMPI, LX, optionId, MC, diagnosesDate, pastName, PRJ))
+
+        # 既往史手术
+        ehrPastOps = person['ehrPastOps']
+        if ehrPastOps:
+            LX = 2
+            sql = 'INSERT INTO zjb_grda_fz_jwsddd (EMPI,LX,BM,MC,RQ,BZ,PRJ) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+            for i in ehrPastOps:
+                optionId = i['optionId']
+                pastName = i['pastName']
+                diagnosesDate = i['diagnosesDate']
+                BZ = None  # TODO 既往史手术无备注字段
+                cursor.execute(sql, (EMPI, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
+
+        # 既往史外伤
+        ehrPastTraumas = person['ehrPastTraumas']
+        if ehrPastTraumas:
+            LX = 3
+            sql = 'INSERT INTO zjb_grda_fz_jwsddd (EMPI,LX,BM,MC,RQ,BZ,PRJ) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+            for i in ehrPastTraumas:
+                optionId = i['optionId']
+                pastName = i['pastName']
+                diagnosesDate = i['diagnosesDate']
+                BZ = None  # TODO 既往史外伤无备注字段
+                cursor.execute(sql, (EMPI, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
+
+        # 既往史输血
+        ehrPastBloods = person['ehrPastBloods']
+        if ehrPastBloods:
+            LX = 4
+            sql = 'INSERT INTO zjb_grda_fz_jwsddd (EMPI,LX,BM,MC,RQ,BZ,PRJ) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+            for i in ehrPastBloods:
+                optionId = i['optionId']
+                bloodReason = i['bloodReason']
+                diagnosesDate = i['diagnosesDate']
+                BZ = None  # TODO 既往史输血无备注字段
+                cursor.execute(sql, (EMPI, LX, optionId, bloodReason, diagnosesDate, BZ, PRJ))
+
+        # 每1000次commit一次
+        if counter % 1000 == 0:
+            connect.commit()
+
+    # 最后提交一次，最后不够1000的
     connect.commit()
     connect.close()
-
-    #     # 既往史疾病 #TODO 多个的情况未考虑
-    #     ehrPastSicks = person['ehrPastSicks']
-    #     if ehrPastSicks:
-    #         ehrPastSicks = ehrPastSicks[0]
-    #         JWSRQ = ehrPastSicks['diagnosesDate']
-    #         JWSJBBM = ehrPastSicks['optionId']
-    #         JWSJBBZ = None
-    #     else:
-    #         JWSRQ = None
-    #         JWSJBBM = None
-    #         JWSJBBZ = None
-    #     # 既往史手术 #TODO 多个的情况未考虑
-    #     ehrPastOps = person['ehrPastOps'][0]
-    #     JWSSSMC = ehrPastOps['pastName']
-    #     JWSSSRQ = ehrPastOps['diagnosesDate']
-    #     JWSSSBZ = None
-    #     # 既往史外伤 #TODO 多个的情况未考虑
-    #     ehrPastTraumas = person['ehrPastTraumas'][0]
-    #     JWSWSMC = ehrPastTraumas['pastName']
-    #     JWSWSRQ = ehrPastTraumas['diagnosesDate']
-    #     JWSWSBZ = None
-    #     # 既往史输血 #TODO 多个的情况未考虑
-    #     ehrPastBloods = person['ehrPastBloods'][0]
-    #     JWSSXYY = ehrPastBloods['bloodReason']
-    #     JWSSXRQ = ehrPastBloods['diagnosesDate']
-    #     JWSSXBZ = None
 
 
 if __name__ == '__main__':
