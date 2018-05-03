@@ -165,13 +165,14 @@ def main():
         ehrPastSicks = person['ehrPastSicks']
         if ehrPastSicks:
             LX = 1
-            MC_list = ['无','高血压','糖尿病','冠心病','慢性阻塞性肺病','恶性肿瘤','脑卒中','严重精神障碍','肺结核','肝炎','其他法定传染病','职业病','其他']
+            MC_list = ['无', '高血压', '糖尿病', '冠心病', '慢性阻塞性肺病', '恶性肿瘤', '脑卒中', '严重精神障碍', '肺结核', '肝炎', '其他法定传染病', '职业病',
+                       '其他']
             sql = 'INSERT INTO zjb_grda_fz_jwsddd (EMPI,LX,BM,MC,RQ,BZ,PRJ) VALUES (%s,%s,%s,%s,%s,%s,%s)'
             for i in ehrPastSicks:
                 optionId = i['optionId']
                 diagnosesDate = i['diagnosesDate']
                 pastName = i['pastName']
-                MC = MC_list[int(optionId)-1]
+                MC = MC_list[int(optionId) - 1]
                 cursor.execute(sql, (EMPI, LX, optionId, MC, diagnosesDate, pastName, PRJ))
 
         # 既往史手术
@@ -183,7 +184,7 @@ def main():
                 optionId = i['optionId']
                 pastName = i['pastName']
                 diagnosesDate = i['diagnosesDate']
-                BZ = None  # TODO 既往史手术无备注字段
+                BZ = None
                 cursor.execute(sql, (EMPI, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
 
         # 既往史外伤
@@ -195,7 +196,7 @@ def main():
                 optionId = i['optionId']
                 pastName = i['pastName']
                 diagnosesDate = i['diagnosesDate']
-                BZ = None  # TODO 既往史外伤无备注字段
+                BZ = None
                 cursor.execute(sql, (EMPI, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
 
         # 既往史输血
@@ -207,7 +208,7 @@ def main():
                 optionId = i['optionId']
                 bloodReason = i['bloodReason']
                 diagnosesDate = i['diagnosesDate']
-                BZ = None  # TODO 既往史输血无备注字段
+                BZ = None
                 cursor.execute(sql, (EMPI, LX, optionId, bloodReason, diagnosesDate, BZ, PRJ))
 
         # 每1000次commit一次
