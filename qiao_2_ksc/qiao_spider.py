@@ -6,6 +6,7 @@ import requests
 import random
 import pymongo
 from pymongo.errors import DuplicateKeyError
+from qiao_2_ksc import login
 
 MONGO_CONFIG = {
     'host': '127.0.0.1',
@@ -13,9 +14,10 @@ MONGO_CONFIG = {
 }
 client = pymongo.MongoClient(**MONGO_CONFIG)
 db = client['datasets']
-collection_list = db['xam_person_list']
-collection_detail = db['xam_person_detail']
-collection_error = db['xam_error']
+collection_list_514 = db['xam_person_list_514']
+collection_list_417 = db['xam_person_list']
+collection_detail = db['xam_person_detail_514']
+collection_error = db['xam_error_514']
 
 
 def get_cookie():
@@ -24,11 +26,11 @@ def get_cookie():
     return cookie
 
 
-def get_list():
+def get_list(session):
     # 个人档案列表
 
     try:
-        response = requests.post(
+        response = session.post(
             url="http://jkda.xamwjw.gov.cn/grid/page/query.action",
             params={
                 "gridCode": "ph_hr_grid",
@@ -37,7 +39,6 @@ def get_list():
             headers={
                 "Origin": "http://jkda.xamwjw.gov.cn",
                 "Accept": "*/*",
-                "Cookie": get_cookie(),
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "Referer": "http://jkda.xamwjw.gov.cn/main.action",
                 "Host": "jkda.xamwjw.gov.cn",
@@ -66,7 +67,7 @@ def get_list():
                 "parameter.endage": "",
                 "page": "{page}".format(page=1),
                 "start": "{start}".format(start=0),
-                "limit": "{limit}".format(limit=208339),
+                "limit": "{limit}".format(limit=208485),
                 "parameter.dsn": "",
             },
         )
@@ -74,22 +75,21 @@ def get_list():
         print(len(page_data))
         for i in page_data:
             i['_id'] = i['SERIAL_CODE']
-            collection_list.insert(i)
+            collection_list_514.insert(i)
         return page_data
     except Exception as e:
         print('HTTP Request failed: {}'.format(e))
 
 
-def get_detail(serial_code, pe_id):
+def get_detail(serial_code, session):
     # 个人档案详细信息
     # POST http://jkda.xamwjw.gov.cn/ph/queryHr.action
     try:
-        response = requests.post(
+        response = session.post(
             url="http://jkda.xamwjw.gov.cn/ph/queryHr.action",
             headers={
                 "Origin": "http://jkda.xamwjw.gov.cn",
                 "Accept": "*/*",
-                "Cookie": get_cookie(),
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "Referer": "http://jkda.xamwjw.gov.cn/main.action",
                 "Host": "jkda.xamwjw.gov.cn",
@@ -100,7 +100,7 @@ def get_detail(serial_code, pe_id):
             data={
                 "jsonResult": "true￼Name",
                 "serialCode": "{}".format(serial_code),
-                "peId": "{}".format(pe_id),
+                "peId": "{}".format(serial_code),
             },
         )
         person_ehr = response.json()
@@ -117,7 +117,7 @@ def get_detail(serial_code, pe_id):
 def get_all_detail():
     for i in range(208, 209):
         print('now:', str([i * 1000, (i + 1) * 1000]))
-        cursor = collection_list.find({}, {"_id": 1}).skip((i * 1000)).limit(1000)
+        cursor = collection_list_514.find({}, {"_id": 1}).skip((i * 1000)).limit(1000)
         result = list(cursor)
         for ii in result:
             serial_code = ii['_id']
@@ -140,7 +140,7 @@ def get_all_detail():
                     print(e)
 
 def re_get_error_detail():
-    cursor = collection_detail.find({"sessionInvalid" : "本次会话已过期,请重新登录！！"}, {"_id":1})
+    cursor = collection_detail.find({"sessionInvalid": "本次会话已过期,请重新登录！！"}, {"_id": 1})
     result = list(cursor)
     print(len(result))
     for i in result:
@@ -165,7 +165,7 @@ def re_get_error_detail():
 
 
 def get_diff_list_detail():
-    cursor = collection_list.find({},{'_id':1})
+    cursor = collection_list_514.find({}, {'_id': 1})
     result = list(cursor)
     list_ids = [i['_id'] for i in result]
 
@@ -224,12 +224,12 @@ def data_verify():
     数据完整性校验
     :return:
     '''
-    cursor = collection_list.find({}, {"_id":1, "P_NAME":1})
+    cursor = collection_list_514.find({}, {"_id": 1, "P_NAME": 1})
     result = list(cursor)
     for i in result:
         _id = i['_id']
         P_NAME = i['P_NAME']
-        cursor2 = collection_detail.find({"_id": _id}, {"person":1})
+        cursor2 = collection_detail.find({"_id": _id}, {"person": 1})
         result2 = list(cursor2)
         if result2:
             if result2[0]['person']['pName'] == P_NAME:
@@ -255,6 +255,84 @@ def data_verify():
     # list: 韩金花 detail: 韩金虎 395496
     # detail中找不到id: 343894
     # '''
+
+
+def get_diff_417_514():
+    cursor_417 = collection_list_417.find({}, {'_id': 1})
+    cursor_514 = collection_list_514.find({}, {'_id': 1})
+    _id_all_417 = []
+    _id_all_514 = []
+    for i in cursor_417:
+        _id_all_417.append(i['_id'])
+    print('417 total:', len(_id_all_417))
+    for i in cursor_514:
+        _id_all_514.append(i['_id'])
+    print('514 total:', len(_id_all_514))
+    # 比较两个数组的不同:
+    ## 514不在417的id
+    not_in_417 = []
+    for i in _id_all_514:
+        if i not in _id_all_417:
+            not_in_417.append(i)
+    print('not in 417 total:', len(not_in_417))
+    # 保存下来
+    with open('not_in_417.txt', 'w') as f:
+        f.write('\n'.join(not_in_417))
+
+    ## 417不在514的id
+    not_in_514 = []
+    for i in _id_all_417:
+        if i not in _id_all_514:
+            not_in_514.append(i)
+    print('not in 514 total:', len(not_in_514))
+    # 保存下来
+    with open('not_in_514.txt', 'w') as f:
+        f.write('\n'.join(not_in_514))
+
+
+def get_detail_514():
+    # 把514中比417多的ID加入
+    # login
+    session = login('xingjinhua', '123456789')
+    # get id form txt
+    with open('not_in_417.txt', 'r') as f:
+        result = f.readlines()
+        result = [x.strip() for x in result]
+    # get detail with id and session, and insert into mongodb.
+    while True:
+        try:
+            serial_code = result.pop()
+        except IndexError as e:
+            print('completed:', e)
+            break
+        try:
+            person_ehr = get_detail(serial_code, session)
+            if not person_ehr:
+                print('serial_code {} got None result'.format(serial_code))
+                continue
+            if 'sessionInvalid' in person_ehr.keys():
+                print(person_ehr['sessionInvalid'])
+                session = login('xingjinhua', '123456789')
+                result.append(serial_code)
+            person_ehr['_id'] = serial_code
+            print(serial_code, ' - ', person_ehr['person']['pName'])
+            collection_detail.insert(person_ehr)
+        except Exception as e:
+            print(e)
+
+
+def remove_detail_417():
+    # 把417中比514中多的ID去掉
+    with open('not_in_514.txt', 'r') as f:
+        result = f.readlines()
+        result = [x.strip() for x in result]
+        print(result)
+    for serial_code in result:
+        try:
+            collection_detail.remove({'_id': serial_code})
+        except Exception as e:
+            print(e)
+
 
 if __name__ == '__main__':
     data_verify()
