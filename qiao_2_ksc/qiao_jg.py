@@ -56,6 +56,8 @@ def main():
     for i in children:
         SJBM = '152222000'
         BM = i['orgCode']
+        if BM.startswith('22'):
+            BM = '1522' + BM
         MC = i['orgName']
         LX = type_map[i['orgType']]
         children = i['children']
@@ -64,6 +66,8 @@ def main():
             for ii in children:
                 SJBM = BM
                 BM = ii['orgCode']
+                if BM.startswith('22'):
+                    BM = '1522' + BM
                 MC = ii['orgName']
                 LX = type_map[ii['orgType']]
                 cursor.execute(sql, (BM, MC, SJBM, '1', LX, '1'))

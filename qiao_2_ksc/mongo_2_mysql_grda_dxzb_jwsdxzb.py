@@ -20,9 +20,9 @@ def main():
     result_cursor = collection_detail.find()
     counter = 0
     # sql
-    sql1 = 'INSERT INTO sjzq_grda_dxzb (bm,lx,bm,bz,prj) VALUES (%s,%s,%s,%s,%s)'
-    sql2 = 'INSERT INTO sjzq_grda_dxzb (bm,lx,bm,prj) VALUES (%s,%s,%s,%s)'
-    sql3 = 'INSERT INTO sjzq_grda_jwsdxzb (bm,lx,bm,mc,rq,bz,prj) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+    sql1 = 'INSERT INTO sjzq_grda_dxzb (jmbm,lx,bm,bz,prj) VALUES (%s,%s,%s,%s,%s)'
+    sql2 = 'INSERT INTO sjzq_grda_dxzb (jmbm,lx,bm,prj) VALUES (%s,%s,%s,%s)'
+    sql3 = 'INSERT INTO sjzq_grda_jwsdxzb (jmbm,lx,bm,mc,rq,bz,prj) VALUES (%s,%s,%s,%s,%s,%s,%s)'
     for i in result_cursor:
 
         # log progress..
