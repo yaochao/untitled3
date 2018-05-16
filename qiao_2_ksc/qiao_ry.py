@@ -163,7 +163,7 @@ lb_map = {
 
 def main():
     # mysql
-    connect = pymysql.connect(**MYSQL_CONF_LOCAL)
+    connect = pymysql.connect(**MYSQL_CONF_DEV)
     cursor = connect.cursor()
     # for
     for i in user_pass_list:
@@ -182,6 +182,8 @@ def main():
             orgUserBean = result['orgUserBean']
 
             sqbm = result['orgCode']
+            if sqbm.startswith('22'):
+                sqbm = '1522' + sqbm
             bm = orgUserBean['empId']
             mc = orgUserBean['empName']
             xb = orgUserBean['sex'] if orgUserBean['sex'] else '0'

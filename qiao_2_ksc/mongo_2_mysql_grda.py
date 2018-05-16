@@ -77,7 +77,7 @@ def main():
         ISTNB = person['feaHyperg']
         ISGXY = person['feaHypert']
         ISJSB = person['feaPsy']
-        ISFJH = person['feaPtb']
+        ISFJH = 0 if person['feaPtb'] == None else 1
         ISPKRK = int(person['feaPap'])
 
         # sql拼装
@@ -92,7 +92,7 @@ def main():
             counter = 0
         # log progress..
         print(counter2, '-', XM)
-    # 最后别忘提交一次，提交最后不够1000个的insert操作。
+    # 最后别忘提交一次，提交最后不够10000个的insert操作。
     connect.commit()
     connect.close()
 
