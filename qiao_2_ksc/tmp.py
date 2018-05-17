@@ -11,19 +11,29 @@ cursor = connect.cursor()
 cursor2 = connect.cursor()
 
 def update_sjzq_ry():
+    '''
+    把创建的人员更新到个人档案对应的建档人员和责任医生
+    :return:
+    '''
     sql = 'SELECT * FROM sjzq_ry'
     cursor.execute(sql)
     result = cursor.fetchall()
     for index, i in enumerate(result):
         print(i)
-        # sql = 'UPDATE sjzq_grda SET zrysid=%s WHERE sqbm=%s AND zrys=%s AND zrysid is null'
-        sql = 'UPDATE sjzq_grda SET jdryid=%s,jdry=%s WHERE sqbm=%s AND jdrymc=%s AND jdryid is null'
-        cursor.execute(sql, (i['bm'], i['bm'], i['sqbm'], i['mc']))
+        sql = 'UPDATE sjzq_grda SET zrysid=%s WHERE sqbm=%s AND zrys=%s AND zrysid is null'
+        sql2 = 'UPDATE sjzq_grda SET jdryid=%s,jdry=%s WHERE sqbm=%s AND jdrymc=%s AND jdryid is null'
+        cursor.execute(sql, (i['bm'], i['sqbm'], i['mc']))
+        connect.commit()
+        cursor.execute(sql2, (i['bm'], i['bm'], i['sqbm'], i['mc']))
         connect.commit()
     connect.close()
 
 
 def create_ry():
+    '''
+    创建人员
+    :return:
+    '''
     # sql = 'SELECT sqbm, zrys FROM sjzq_grda where zrysid is null and zrys is not null'
     sql = 'SELECT sqbm, jdrymc FROM sjzq_grda where jdryid is null and jdrymc is not null'
     cursor.execute(sql)
@@ -48,7 +58,10 @@ def create_ry():
 
 
 def change_sqbm_add_1522():
-
+    '''
+    把个人档案里面机构的编码，开头为22的，加上1522.
+    :return:
+    '''
     # select sqbm start with '22'
     sql = 'SELECT DISTINCT sqbm FROM sjzq_grda WHERE sqbm LIKE "22%"'
     cursor.execute(sql)
