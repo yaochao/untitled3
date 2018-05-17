@@ -5,7 +5,7 @@ import pymysql
 
 from .qiao_login import login
 
-__all__ = ['login', 'LoginTimeoutException', 'MYSQL_CONF_LOCAL', 'MYSQL_CONF_DEV', 'MONGO_CONF']
+__all__ = ['login', 'LoginTimeoutException', 'MYSQL_CONF_LOCAL', 'MYSQL_CONF_DEV', 'MONGO_CONF', 'MONGO_CONF2']
 
 MYSQL_CONF_LOCAL = {
     'host': '127.0.0.1',
@@ -30,6 +30,11 @@ MYSQL_CONF_DEV = {
 MONGO_CONF = {
     'host': '127.0.0.1',
     'port': 27017,
+}
+
+MONGO_CONF2 = {
+    'host': '127.0.0.1',
+    'port': 27018,
 }
 
 user_pass_list = [

@@ -11,7 +11,7 @@ cursor = connect.cursor()
 cursor2 = connect.cursor()
 
 def update_sjzq_ry():
-    sql = 'SELECT * FROM sjzq_ry where id > 873'
+    sql = 'SELECT * FROM sjzq_ry'
     cursor.execute(sql)
     result = cursor.fetchall()
     for index, i in enumerate(result):

@@ -5,13 +5,11 @@
 
 import pymongo
 import pymysql
-from pprint import pprint
-import csv
 from qiao_2_ksc import MYSQL_CONF_DEV, MYSQL_CONF_LOCAL, MONGO_CONF
 
 
 def main():
-    connect = pymysql.connect(**MYSQL_CONF_LOCAL)
+    connect = pymysql.connect(**MYSQL_CONF_DEV)
     cursor = connect.cursor()
 
     client = pymongo.MongoClient(**MONGO_CONF)
@@ -20,9 +18,11 @@ def main():
     result_cursor = collection_detail.find()
     counter = 0
     # sql
+    sql0 = 'INSERT INTO sjzq_grda_dxzb (jmbm,lx,sublx,bm,bz,prj) VALUES (%s,%s,%s,%s,%s,%s)'
     sql1 = 'INSERT INTO sjzq_grda_dxzb (jmbm,lx,bm,bz,prj) VALUES (%s,%s,%s,%s,%s)'
     sql2 = 'INSERT INTO sjzq_grda_dxzb (jmbm,lx,bm,prj) VALUES (%s,%s,%s,%s)'
     sql3 = 'INSERT INTO sjzq_grda_jwsdxzb (jmbm,lx,bm,mc,rq,bz,prj) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+    sql4 = 'INSERT INTO sjzq_grda_jwsdxzb (jmbm,lx,mc,rq,bz,prj) VALUES (%s,%s,%s,%s,%s,%s)'
     for i in result_cursor:
 
         # log progress..
@@ -67,7 +67,6 @@ def main():
         ehrFamily = person['ehrFamily']
         if ehrFamily:
             LX = 4
-            sql = 'INSERT INTO sjzq_grda_dxzb (empi,lx,sublx,bm,bz,prj) VALUES (%s,%s,%s,%s,%s,%s)'
             for i in ehrFamily:
                 relaId = i['relaId']  # 1.父亲 2.母亲 3.兄弟姐妹 4.子女
                 optionId = i['optionId']  # 选项id
@@ -75,7 +74,7 @@ def main():
                     dieaseName = i['dieaseName']
                 else:
                     dieaseName = None
-                cursor.execute(sql, (BM, LX, relaId, optionId, dieaseName, PRJ))
+                cursor.execute(sql0, (BM, LX, relaId, optionId, dieaseName, PRJ))
 
         # 遗传疾病
         ehrGenetic = person['ehrGenetic']
@@ -152,6 +151,8 @@ def main():
                 diagnosesDate = i['diagnosesDate']
                 pastName = i['pastName']
                 MC = MC_list[int(optionId) - 1]
+                if MC == '无':
+                    continue
                 cursor.execute(sql3, (BM, LX, optionId, MC, diagnosesDate, pastName, PRJ))
 
         # 既往史手术
@@ -163,7 +164,13 @@ def main():
                 pastName = i['pastName']
                 diagnosesDate = i['diagnosesDate']
                 BZ = None
-                cursor.execute(sql3, (BM, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
+                # 选择第一个选项"无"不插入
+                # 疾病名称为"无"不插入
+                if pastName == '无' or optionId == '1':
+                    continue
+                # 疾病名和诊断日期必须有一个才插入
+                if pastName or diagnosesDate:
+                    cursor.execute(sql4, (BM, LX, pastName, diagnosesDate, BZ, PRJ))
 
         # 既往史外伤
         ehrPastTraumas = person['ehrPastTraumas']
@@ -174,7 +181,13 @@ def main():
                 pastName = i['pastName']
                 diagnosesDate = i['diagnosesDate']
                 BZ = None
-                cursor.execute(sql3, (BM, LX, optionId, pastName, diagnosesDate, BZ, PRJ))
+                # 选择第一个选项"无"不插入
+                # 疾病名称为"无"不插入
+                if pastName == '无' or optionId == '1':
+                    continue
+                # 疾病名和诊断日期必须有一个才插入
+                if pastName or diagnosesDate:
+                    cursor.execute(sql4, (BM, LX, pastName, diagnosesDate, BZ, PRJ))
 
         # 既往史输血
         ehrPastBloods = person['ehrPastBloods']
@@ -185,13 +198,19 @@ def main():
                 bloodReason = i['bloodReason']
                 diagnosesDate = i['diagnosesDate']
                 BZ = None
-                cursor.execute(sql3, (BM, LX, optionId, bloodReason, diagnosesDate, BZ, PRJ))
+                # 选择第一个选项"无"不插入
+                # 疾病名称为"无"不插入
+                if bloodReason == '无' or optionId == '1':
+                    continue
+                # 疾病名和诊断日期必须有一个才插入
+                if bloodReason or diagnosesDate:
+                    cursor.execute(sql4, (BM, LX, bloodReason, diagnosesDate, BZ, PRJ))
 
-        # 每10000次commit一次
-        if counter % 10000 == 0:
+        # 每1000次commit一次
+        if counter % 1000 == 0:
             connect.commit()
 
-    # 最后提交一次，最后不够10000的
+    # 最后提交一次，最后不够1000的
     connect.commit()
     connect.close()
 
