@@ -138,6 +138,7 @@ def main():
             livestockBar = livestockBar.split('/')
             LX = 11
             for i in livestockBar:
+                i = int(i) + 1 # 禽畜栏这个选项和其他的选项不一样，他是从0开始的，所以需要+1，保持和规定的同步
                 cursor.execute(sql2, (BM, LX, i, PRJ))
 
         # 既往史疾病

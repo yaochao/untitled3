@@ -38,6 +38,8 @@ def main():
         JTDZ5 = addrcodePresent[:12]
 
         JDSQ = person['createUnit']
+        if JDSQ.startswith('22'): # 把开头为22的机构，补充上1522。
+            JDSQ = '1522' + JDSQ
         JDSQ = transfer_childhospital_to_roothospital(JDSQ)  # 没有账号的4家机构，映射到他的上级医院
         JDRY = person['creator']
         JDRYMC = person['creatorName']
