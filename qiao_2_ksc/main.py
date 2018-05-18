@@ -459,7 +459,6 @@ def get_person_detail(serial_code, session):
                 "peId": "%s" % serial_code,
             },
         )
-        print(response.text)
         person_ehr = response.json()
         return person_ehr
     except Exception as e:
@@ -843,7 +842,7 @@ def update_ry_to_grda():
         sql2 = 'UPDATE sjzq_grda SET jdryid=%s,jdry=%s WHERE sqbm=%s AND jdrymc=%s AND jdryid is null'
         cursor.execute(sql, (i['bm'], i['sqbm'], i['mc']))
         cursor.execute(sql2, (i['bm'], i['bm'], i['sqbm'], i['mc']))
-    connect.commit()
+        connect.commit()
     cursor.close()
 
 
