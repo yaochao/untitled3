@@ -3,7 +3,6 @@
 # Created by yaochao at 2018/5/18
 
 import requests
-import pymongo
 import pymysql
 
 MYSQL_CONF_LOCAL = {
@@ -26,14 +25,14 @@ MYSQL_CONF_DEV = {
     'cursorclass': pymysql.cursors.DictCursor,
 }
 
-MONGO_CONF = {
-    'host': '127.0.0.1',
-    'port': 27017,
-}
-
-MONGO_CONF2 = {
-    'host': '127.0.0.1',
-    'port': 27018,
+MYSQL_CONF_DEV2 = {
+    'host': '172.31.48.2',
+    'port': 8091,
+    'user': 'phstest',
+    'passwd': 'phstest@20161205',
+    'db': 'g_lb',
+    'charset': 'utf8',
+    'cursorclass': pymysql.cursors.DictCursor,
 }
 
 user_pass_list = [
@@ -424,9 +423,9 @@ def get_person_list(session):
                 "jsonResult": "true",
                 "parameter.org": "001001002",
                 "parameter.endage": "",
-                "page": "{page}".format(page=1),
-                "start": "{start}".format(start=0),
-                "limit": "{limit}".format(limit=210000),
+                "page": "%s" % 1,
+                "start": "%s" % 0,
+                "limit": "%s" % 210000,
                 "parameter.dsn": "",
             },
         )
@@ -456,8 +455,8 @@ def get_person_detail(serial_code, session):
             },
             data={
                 "jsonResult": "true",
-                "serialCode": "{}".format(serial_code),
-                "peId": "{}".format(serial_code),
+                "serialCode": "%s" % serial_code,
+                "peId": "%s" % serial_code,
             },
         )
         print(response.text)
@@ -846,11 +845,11 @@ def update_ry_to_grda():
 
 
 def main():
-    # insert_dq()
-    # insert_jg()
-    # insert_ks()
-    # insert_ry()
-    # get_insert_all_person_detail()
+    insert_dq()
+    insert_jg()
+    insert_ks()
+    insert_ry()
+    get_insert_all_person_detail()
     create_ry()
     update_ry_to_grda()
     connect.close()
