@@ -783,7 +783,7 @@ def get_insert_all_person_detail():
         # 插入MySQL
         if len(tmp_1000_person_detail) >= 1000:
             batch_insert_person_detail(tmp_1000_person_detail)
-            tmp_1000_person_detail.clear()
+            tmp_1000_person_detail[:] = []
 
     # 最后不够1000个，再插入一次
     batch_insert_person_detail(tmp_1000_person_detail)
