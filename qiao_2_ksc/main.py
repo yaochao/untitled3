@@ -785,6 +785,9 @@ def get_insert_all_person_detail():
             batch_insert_person_detail(tmp_1000_person_detail)
             tmp_1000_person_detail.clear()
 
+    # 最后不够1000个，再插入一次
+    batch_insert_person_detail(tmp_1000_person_detail)
+
 
 ####################### 把个人档案里面责任医生和建档人员，有姓名没有ID的，新建到人员表 #######################
 def create_ry():
@@ -856,6 +859,4 @@ def main():
 
 
 if __name__ == '__main__':
-    session = login_xjh()
-    print(get_person_detail('1165998', session))
     main()
