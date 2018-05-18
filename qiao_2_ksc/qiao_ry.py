@@ -4,7 +4,7 @@
 
 
 import pymysql
-from pipenv.utils import requests
+import requests
 from qiao_2_ksc import MYSQL_CONF_LOCAL, MYSQL_CONF_DEV, login, user_pass_list
 
 
@@ -32,7 +32,7 @@ def get_doctor(session):
                 "start": "0",
                 "orgUserBean.technicTitle": "",
                 "orgUserBean.positionCode": "",
-                "limit": "26",
+                "limit": "1000",
                 "jsonResult": "true",
                 "orgUserBean.empName": "",
                 "orgUserBean.idNo": "",
