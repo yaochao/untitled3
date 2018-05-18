@@ -849,10 +849,10 @@ def update_ry_to_grda():
 
 def main():
     start = time.time()
-    insert_dq()
-    insert_jg()
-    insert_ks()
-    insert_ry()
+    # insert_dq()
+    # insert_jg()
+    # insert_ks()
+    # insert_ry()
     get_insert_all_person_detail()
     create_ry()
     update_ry_to_grda()
