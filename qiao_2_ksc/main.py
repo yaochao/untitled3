@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*- 
 # Created by yaochao at 2018/5/18
+import time
 
 import requests
 import pymysql
@@ -847,6 +848,7 @@ def update_ry_to_grda():
 
 
 def main():
+    start = time.time()
     insert_dq()
     insert_jg()
     insert_ks()
@@ -855,6 +857,7 @@ def main():
     create_ry()
     update_ry_to_grda()
     connect.close()
+    print('总共耗时: %s' % (time.time() - start))
 
 
 if __name__ == '__main__':
