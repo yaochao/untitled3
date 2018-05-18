@@ -64,7 +64,7 @@ user_pass_list = [
     ('孟恩套力盖银铅矿职工医院', 'qkjfy', 'BNM291'),
 ]
 
-connect = pymysql.connect(**MYSQL_CONF_LOCAL)
+connect = pymysql.connect(**MYSQL_CONF_DEV2)
 
 
 ####################### 登录，返回session #######################
