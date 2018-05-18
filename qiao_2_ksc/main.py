@@ -193,10 +193,10 @@ def insert_jg():
     r = get_jg(session)
     children = r['children'][0]['children'][0]['children']
     type_map = {
-        "盟/市卫生局": '1',
-        "区/县卫生局": '2',
-        "卫生服务中心/卫生院": '4',
-        "卫生服务站/卫生室": '5',
+        u"盟/市卫生局": '1',
+        u"区/县卫生局": '2',
+        u"卫生服务中心/卫生院": '4',
+        u"卫生服务站/卫生室": '5',
     }
     sql = 'INSERT INTO sjzq_jg (bm,mc,sjbm,state,lx,prj) VALUES (%s,%s,%s,%s,%s,%s)'
     for i in children:
@@ -692,14 +692,14 @@ def batch_insert_person_detail(items):
         ehrPastSicks = person['ehrPastSicks']
         if ehrPastSicks:
             LX = 1
-            MC_list = ['无', '高血压', '糖尿病', '冠心病', '慢性阻塞性肺病', '恶性肿瘤', '脑卒中', '严重精神障碍', '肺结核', '肝炎', '其他法定传染病', '职业病',
-                       '其他']
+            MC_list = [u'无', u'高血压', u'糖尿病', u'冠心病', u'慢性阻塞性肺病', u'恶性肿瘤', u'脑卒中', u'严重精神障碍', u'肺结核', u'肝炎', u'其他法定传染病', u'职业病',
+                       u'其他']
             for i in ehrPastSicks:
                 optionId = i['optionId']
                 diagnosesDate = i['diagnosesDate']
                 pastName = i['pastName']
                 MC = MC_list[int(optionId) - 1]
-                if MC == '无':
+                if MC == u'无':
                     continue
                 cursor.execute(sql3, (BM, LX, optionId, MC, diagnosesDate, pastName, PRJ))
 
@@ -714,7 +714,7 @@ def batch_insert_person_detail(items):
                 BZ = None
                 # 选择第一个选项"无"不插入
                 # 疾病名称为"无"不插入
-                if pastName == '无' or optionId == '1':
+                if pastName == u'无' or optionId == '1':
                     continue
                 # 疾病名和诊断日期必须有一个才插入
                 if pastName or diagnosesDate:
@@ -731,7 +731,7 @@ def batch_insert_person_detail(items):
                 BZ = None
                 # 选择第一个选项"无"不插入
                 # 疾病名称为"无"不插入
-                if pastName == '无' or optionId == '1':
+                if pastName == u'无' or optionId == '1':
                     continue
                 # 疾病名和诊断日期必须有一个才插入
                 if pastName or diagnosesDate:
@@ -748,7 +748,7 @@ def batch_insert_person_detail(items):
                 BZ = None
                 # 选择第一个选项"无"不插入
                 # 疾病名称为"无"不插入
-                if bloodReason == '无' or optionId == '1':
+                if bloodReason == u'无' or optionId == '1':
                     continue
                 # 疾病名和诊断日期必须有一个才插入
                 if bloodReason or diagnosesDate:
