@@ -75,7 +75,7 @@ user_pass_list = [
     ('孟恩套力盖银铅矿职工医院', 'qkjfy', 'BNM291'),
 ]
 
-connect = pymysql.connect(**MYSQL_CONF_DEV2)
+connect = pymysql.connect(**MYSQL_CONF_DEV)
 
 client = pymongo.MongoClient(**MONGO_CONF)
 db = client['datasets']
@@ -566,11 +566,11 @@ def batch_insert_person_detail(items):
 
         ISET = person['feaChild']
         ISYCF = person['feaGravida']
-        ISLNR = 0 if person['feaOlder'] == None else 1
+        ISLNR = 1 if person['feaOlder'] == 1 else 0
         ISTNB = person['feaHyperg']
         ISGXY = person['feaHypert']
         ISJSB = person['feaPsy']
-        ISFJH = 0 if person['feaPtb'] == None else 1
+        ISFJH = 1 if person['feaPtb'] == 1 else 0
         ISPKRK = int(person['feaPap'])
 
         # sql拼装
@@ -869,9 +869,9 @@ def main():
     # insert_ks()
     # insert_ry()
     # get_person_list(SESSION_xjh)
-    get_insert_all_person_detail()
-    # create_ry()
-    # update_ry_to_grda()
+    # get_insert_all_person_detail()
+    create_ry()
+    update_ry_to_grda()
     # connect.close()
     print('总共耗时: %s' % (time.time() - start))
 
