@@ -11,6 +11,11 @@ MONGO_CONF2 = {
     'port': 27018,
 }
 
+MONGO_CONF = {
+    'host': '127.0.0.1',
+    'port': 27017,
+}
+
 MYSQL_CONF_DEV = {
     'host': '127.0.0.1',
     'port': 8891,
@@ -26,6 +31,10 @@ connect = pymysql.connect(**MYSQL_CONF_DEV)
 
 # mongodb init
 client = pymongo.MongoClient(**MONGO_CONF2)
+client2 = pymongo.MongoClient(**MONGO_CONF2)
+db2 = client2['datasets']
+xam_person_detail_514 = db2['xam_person_detail_514']
+
 db = client['datasets']
 xam_et_list_521 = db['xam_et_list_521']
 xam_ycf_list_521 = db['xam_jsb_list_521']
@@ -367,10 +376,42 @@ def diff_lnr2():
         f.write('\n'.join(not_insert))
 
 
+def diff_hjdz_xzz_code():
+    cursor = xam_person_detail_514.find({}, {'person.addrcodePresent': 1, 'person.ehrId': 1})
+    diff_ehrIds = []
+    diff_ehrIds2 = []
+    sql = '''
+UPDATE da_dz a join da_grda0 b on a.dzfk=b.empi SET a.DZ3='{}', a.DZ4='{}',a.DZ5='{}' WHERE b.DAH ='{}';
+UPDATE da_grda1 a join da_grda0 b on a.EMPI=b.empi SET a.JTDZ3='{}', a.JTDZ4='{}',a.JTDZ5='{}' WHERE b.DAH ='{}';
+UPDATE person_info a join da_grda0 b on a.EMPI=b.empi SET a.JTDZ3='{}',a.JTDZ4='{}',a.JTDZ5='{}' WHERE b.DAH ='{}';
+'''
+    for i in cursor:
+        addrcodePresent = i['person']['addrcodePresent']
+        ehrId = i['person']['ehrId']
+        if addrcodePresent:
+            if addrcodePresent != ehrId[:12]:
+                try:
+                    addrcodePresent = int(addrcodePresent)
+                    addrcodePresent = str(addrcodePresent)
+                    DZ3 = addrcodePresent[:6]
+                    DZ4 = addrcodePresent[:9]
+                    DZ5 = addrcodePresent[:12]
+                    diff_ehrIds.append(sql.format(DZ3, DZ4, DZ5, ehrId, DZ3, DZ4, DZ5, ehrId, DZ3, DZ4, DZ5, ehrId))
+                except:
+                    diff_ehrIds2.append(ehrId + ' ' + str(addrcodePresent) + '\n')
+    print(len(diff_ehrIds) / 3)
+    print(len(diff_ehrIds2))
+    with open('diff_hjdz_xzz.txt', 'w') as f:
+        f.writelines(diff_ehrIds)
+
+    with open('diff_hjdz_xzz2.txt', 'w') as f:
+        f.writelines(diff_ehrIds2)
+
+
 def main():
     session = login('xingjinhua', '123456789')
     get_gxy_list(session)
 
 
 if __name__ == '__main__':
-    diff_lnr2()
+    diff_hjdz_xzz_code()

@@ -120,6 +120,7 @@ def login_xjh():
     session = login('xingjinhua', '123456789')
     return session
 
+
 SESSION_xjh = login_xjh()
 
 
@@ -521,7 +522,12 @@ def batch_insert_person_detail(items):
         HJDZ = person['addrCharRegi']
         LXDH = person['telNo']
 
-        addrcodePresent = person['ehrId']
+        # person['addrcodePresent'] 并且判断为空为汉字的情况。如果为空为汉字，那么就是用person['ehrId']
+        try:
+            addrcodePresent = int(person['addrcodePresent'])
+            addrcodePresent = str(addrcodePresent)
+        except:
+            addrcodePresent = person['ehrId']
         JTDZ1 = addrcodePresent[:2]
         JTDZ2 = addrcodePresent[:4]
         JTDZ3 = addrcodePresent[:6]
@@ -551,9 +557,35 @@ def batch_insert_person_detail(items):
         CZLX = person['householdFlag']
         MZ = person['nation']
         XX = person['bloodType']
-        RH = person['rh']
-        XL = person['eduLevel']
-        ZYLB = person['occupation']
+
+        RH = person['rh']  # RH TODO 阴性阳性映射
+        map_RH = {
+            '1': '2',
+            '2': '1',
+            '3': '3',
+        }
+        if RH in map_RH:
+            RH = map_RH[RH]
+
+        XL = person['eduLevel']  # TODO 学历映射
+        map_XL = {
+            '1': '9',
+            '2': '8',
+            '3': '7',
+            '4': '6',
+            '5': '3',
+            '6': '10',
+            '7': '5',
+            '8': '4',
+            '9': '2',
+            '10': '1',
+        }
+        if XL in map_XL:
+            XL = map_XL[str(XL)]
+
+        ZYLB = person['occupation']  # TODO 职业类别
+        if ZYLB:
+            ZYLB = str(int(ZYLB) - 1)
 
         marriage_map = {
             '1': '10',
@@ -706,7 +738,8 @@ def batch_insert_person_detail(items):
         ehrPastSicks = person['ehrPastSicks']
         if ehrPastSicks:
             LX = 1
-            MC_list = [u'无', u'高血压', u'糖尿病', u'冠心病', u'慢性阻塞性肺病', u'恶性肿瘤', u'脑卒中', u'严重精神障碍', u'肺结核', u'肝炎', u'其他法定传染病', u'职业病',
+            MC_list = [u'无', u'高血压', u'糖尿病', u'冠心病', u'慢性阻塞性肺病', u'恶性肿瘤', u'脑卒中', u'严重精神障碍', u'肺结核', u'肝炎', u'其他法定传染病',
+                       u'职业病',
                        u'其他']
             for i in ehrPastSicks:
                 optionId = i['optionId']
