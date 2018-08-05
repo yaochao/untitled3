@@ -110,7 +110,7 @@ def main(args):
         uri = args[1]
         assert type(uri) == str
     except:
-        uri = 'https://www.v2ex.com/static/img/v2ex@2x.png'
+        uri = '/Users/yaochao/Desktop/google.png'
     try:
         weight = int(args[2])
         assert type(weight) == int

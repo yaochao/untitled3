@@ -12,8 +12,8 @@ async def hello():
         msg = '{"a":"vote_p","pid":3274,"m":"con"}'
         for i in range(10000):
             await websocket.send(msg)
-            # response = await websocket.recv()
-            print(i)
+            response = await websocket.recv()
+            print(response, i)
 
 
 def main():
