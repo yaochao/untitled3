@@ -1,0 +1,104 @@
+
+
+三、在pyspark中运行代码
+学习Spark程序开发，建议首先通过pyspark交互式学习，加深Spark程序开发的理解。
+这里介绍pyspark 的基本使用。pyspark提供了简单的方式来学习 API，并且提供了交互的方式来分析数据。你可以输入一条语句，pyspark会立即执行语句并返回结果，这就是我们所说的REPL（Read-Eval-Print Loop，交互式解释器），为我们提供了交互式执行环境，表达式计算完成就会输出结果，而不必等到整个程序运行完毕，因此可即时查看中间结果，并对程序进行修改，这样可以在很大程度上提升开发效率。
+
+前面已经安装了Hadoop和Spark，如果Spark不使用HDFS和YARN，那么就不用启动Hadoop也可以正常使用Spark。如果在使用Spark的过程中需要用到 HDFS，就要首先启动 Hadoop（启动Hadoop的方法可以参考上面给出的Hadoop安装教程）。
+这里假设不需要用到HDFS，因此，就没有启动Hadoop。现在我们直接开始使用Spark。
+
+注意：如果按照上面的安装步骤，已经设置了PYSPARK_PYTHON环境变量，那么你直接使用如下命令启动pyspark即可。
+
+bin/pyspark
+Shell 命令
+如果没有设置PYSPARK_PYTHON环境变量，则使用如下命令启动pyspark
+
+PYSPARK_PYTHON=python3 ./bin/pyspark
+pyspark命令及其常用的参数如下：
+
+./bin/pyspark --master <master-url>
+Spark的运行模式取决于传递给SparkContext的Master URL的值。Master URL可以是以下任一种形式：
+* local 使用一个Worker线程本地化运行SPARK(完全不并行)
+* local[*] 使用逻辑CPU个数数量的线程来本地化运行Spark
+* local[K] 使用K个Worker线程本地化运行Spark（理想情况下，K应该根据运行机器的CPU核数设定）
+* spark://HOST:PORT 连接到指定的Spark standalone master。默认端口是7077.
+* yarn-client 以客户端模式连接YARN集群。集群的位置可以在HADOOP_CONF_DIR 环境变量中找到。
+* yarn-cluster 以集群模式连接YARN集群。集群的位置可以在HADOOP_CONF_DIR 环境变量中找到。
+* mesos://HOST:PORT 连接到指定的Mesos集群。默认接口是5050。
+
+需要强调的是，这里我们采用“本地模式”（local）运行Spark，关于如何在集群模式下运行Spark，可以参考后面的“在集群上运行Spark应用程序”。
+在Spark中采用本地模式启动pyspark的命令主要包含以下参数：
+–master：这个参数表示当前的pyspark要连接到哪个master，如果是local[*]，就是使用本地模式启动pyspark，其中，中括号内的星号表示需要使用几个CPU核心(core)；
+–jars： 这个参数用于把相关的JAR包添加到CLASSPATH中；如果有多个jar包，可以使用逗号分隔符连接它们；
+
+比如，要采用本地模式，在4个CPU核心上运行pyspark：
+
+cd /usr/local/spark
+./bin/pyspark --master local[4]
+Shell 命令
+或者，可以在CLASSPATH中添加code.jar，命令如下：
+
+cd /usr/local/spark
+./bin/pyspark --master local[4] --jars code.jar
+可以执行“pyspark –help”命令，获取完整的选项列表，具体如下：
+
+cd /usr/local/spark
+./bin/pyspark --help
+上面是命令使用方法介绍，下面正式使用命令进入pyspark环境，可以通过下面命令启动pyspark环境：
+
+bin/pyspark
+该命令省略了参数，这时，系统默认是“bin/pyspark–master local[*]”，也就是说，是采用本地模式运行，并且使用本地所有的CPU核心。
+
+启动pyspark后，就会进入“>>>”命令提示符状态,如下图所示：
+
+现在，你就可以在里面输入python代码进行调试了。
+比如，下面在命令提示符后面输入一个表达式“8 * 2 + 5”，然后回车，就会立即得到结果：
+
+>>> 8 * 2 + 5
+Python
+最后，可以使用命令“exit()”退出pyspark，如下所示：
+
+>>> exit()
+Python
+或者，也可以直接使用“Ctrl+D”组合键，退出pyspark。
+
+四、Spark独立应用程序编程
+接着我们通过一个简单的应用程序来演示如何通过 Spark API 编写一个独立应用程序。使用 Python进行spark编程比Java和Scala简单得多。
+在进行Python编程前，请先确定是否已经.bashrc中添加PYTHONPATH环境变量。
+接下来即可进行Python编程.
+这里在新建一个test.py文件,并在test.py添加代码
+
+cd ~
+vim test.py
+Shell 命令
+在test.py中添加如下代码,：
+
+from pyspark import SparkContext
+sc = SparkContext( 'local', 'test')
+logFile = "file:///usr/local/spark/README.md"
+logData = sc.textFile(logFile, 2).cache()
+numAs = logData.filter(lambda line: 'a' in line).count()
+numBs = logData.filter(lambda line: 'b' in line).count()
+print('Lines with a: %s, Lines with b: %s' % (numAs, numBs))
+Python
+保存代码后，通过如下命令执行：
+
+python3 ~/test.py
+Shell 命令
+执行结果如下图：
+
+最终得到的结果如下：
+
+Lines with a: 62, Lines with b: 30
+自此，你就完成了你的第一个 Spark 应用程序了。
+
+本文作者阮榕城
+阮榕城
+
+磨人的小妖精！
+
+www.nekomiao.memoc.qq@crnaur
+
+ http://dblab.xmu.edu.cn/blog/1689-2/
+ 大数据
+© 2014 厦大数据库实验室
