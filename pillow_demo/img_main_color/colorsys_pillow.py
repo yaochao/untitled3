@@ -58,7 +58,7 @@ def rgb_filter(img, rgb):
             if rgb != tmp_rgb:
                 img.putpixel((i, j), (255, 255, 255))
             else:
-                coordinates = [(i - 1, j),(i - 1, j - 1), (i, j - 1)]
+                coordinates = [(i - 1, j), (i - 1, j - 1), (i, j - 1)]
                 for x, y in coordinates:
                     # 把超出边界的像素加工一下
                     if x < 0:
@@ -69,7 +69,6 @@ def rgb_filter(img, rgb):
                         y = 0
                     elif y >= size[1]:
                         y = size[1] - 1
-                    print(x, y)
                     img.putpixel((x, y), rgb)
     return img
 
@@ -103,8 +102,8 @@ def paste_imgs(*imgs):
 
 
 def main():
-    # imgname = get_image()
-    imgname = 'code.png'
+    imgname = get_image()
+    # imgname = 'code.png'
     if not imgname:
         return
     img1 = Image.open(imgname)

@@ -27,5 +27,4 @@ tasks = [asyncio.ensure_future(request()) for _ in range(8)]
 loop = asyncio.get_event_loop()
 loop.run_until_complete(asyncio.wait(tasks))
 
-print('cost:',time.time() - start)
-
+print('cost:', time.time() - start)
