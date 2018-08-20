@@ -10,9 +10,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello():
-    rand = random.randint(1, 10)
-    print('randint: ', rand)
-    time.sleep(rand)
+    time.sleep(3)
     return 'Hello!'
 
 

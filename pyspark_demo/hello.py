@@ -9,22 +9,21 @@ import sys
 
 def transfer(j):
     d = json.loads(j)
-    s = ''
     for k, v in d.items():
-        v = r'\N' if not v else v
-        s += k + '~' + v + '|'
-    return s[:-1]
+        if k == '' and v == '':
+            return None
+    return d
 
 
-def main(args):
-    try:
-        j = args[1]
-        print(type(j))
-        assert type(j) == str
-        print(transfer(j))
-    except Exception as e:
-        print(e)
-
-
-if __name__ == '__main__':
-    main(sys.argv)
+for line in sys.stdin:
+    line = line.strip()
+    gid, gender, phone, animal_star, payload, ds, appid = line.split('\t')
+    gid = None if gid == '' else gid
+    gender = None if gender == '' else gender
+    phone = None if phone == '' else phone
+    animal_star = None if animal_star == '' else animal_star
+    payload = None if payload == '' else payload
+    ds = None if ds == '' else ds
+    appid = None if appid == '' else appid
+    payload = str(transfer(payload)).replace(',', '^B').replace(':', '^C')
+    print('^I'.join([gid, gender, phone, animal_star, payload, ds, appid]))
