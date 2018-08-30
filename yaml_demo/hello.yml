@@ -1,0 +1,7 @@
+---
+- host: new
+  address: 127.0.0.1
+  port: 9765
+  tasks:
+  - name: start
+    unarchive: remote_src=true
