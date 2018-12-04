@@ -9,21 +9,21 @@ import time
 
 start = time.time()
 
-
-async def get(url):
-    session = aiohttp.ClientSession()
-    response = await session.get(url)
-    text = await response.text()
-    return text
-
+url = 'https://www.jishux.com'
 
 async def request():
-    url = 'http://127.0.0.1:5000/'
-    text = await get(url)
-    print(text)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                text = await response.status
 
 
-tasks = [asyncio.ensure_future(request()) for _ in range(8)]
+                print(text)
+    except Exception as e:
+        print(e)
+
+
+tasks = [asyncio.ensure_future(request()) for _ in range(1000)]
 loop = asyncio.get_event_loop()
 loop.run_until_complete(asyncio.wait(tasks))
 

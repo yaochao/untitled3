@@ -20,8 +20,13 @@ def on_error(ws, error):
     print('on_error:', error)
 
 
-def on_data(ws, data):
+def on_data(ws, data, data_type, flag):
     print('on_data:', data)
+    print('data_type:', data_type)
+    print('flag:', flag)
+    if flag:
+        time.sleep(25)
+        ws.send("2")
 
 
 def on_close(ws):
@@ -30,26 +35,20 @@ def on_close(ws):
 
 def on_open(ws):
     print('on_open:', "### opened ###")
-    # ws.send(b'open')
-    # def run(*args):
-    #     for i in range(3):
-    #         time.sleep(1)
-    #         ws.send("Hello %d" % i)
-    #     time.sleep(1)
-    #     ws.close()
-    #     print("thread terminating...")
-    #
-    # thread.start_new_thread(run, ())
+    ws.send("2probe")
+    time.sleep(1)
+    ws.send("5")
 
 
 if __name__ == "__main__":
     websocket.enableTrace(True)
     ws = websocket.WebSocketApp(
-        "wss://wangsu-bjac.gw.riven.panda.tv/",
+        url="wss://sshibkhhjk.jin10.com:8081/socket.io/?EIO=3&transport=websocket",
         on_message=on_message,
         on_error=on_error,
         on_close=on_close,
         on_data=on_data,
+        header={"Origin": "https://www.jin10.com"}
     )
     ws.on_open = on_open
     ws.run_forever()
