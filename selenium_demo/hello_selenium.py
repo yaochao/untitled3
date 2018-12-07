@@ -4,11 +4,23 @@
 
 from selenium import webdriver
 
-phantomjs_path = '/usr/local/bin/phantomjs'
-driver = webdriver.PhantomJS(executable_path=phantomjs_path)
-driver.get('http://36kr.com/')
-page_source = driver.page_source.encode('utf8')
-print(type(page_source))
-with open('test.html', 'wb') as f:
+
+options = webdriver.ChromeOptions()
+options.add_argument('--user-data-dir=/Users/yaochao/test/chromedriverdir')
+options.add_argument('--headless')
+options.add_argument('--window-size=1920x1080')
+options.add_argument('--blink-settings=imagesEnabled=true')
+options.add_argument('--lang=zh_CN')
+options.add_argument('--ignore-certificate-errors')
+# options.add_argument('--user-agent="Mozilla/5.0 (iPod; U; CPU iPhone OS 2_1 like Mac OS X; ja-jp')
+
+driver = webdriver.Chrome(options=options)
+driver.get('http://www.baidu.com/')
+page_source = driver.page_source
+with open('test.html', 'w') as f:
     f.write(page_source)
-driver.close()
+
+driver.save_screenshot('screenshot2.png')
+
+
+driver.quit()
