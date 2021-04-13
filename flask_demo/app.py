@@ -5,7 +5,7 @@
 
 from flask import Flask
 from flask import request, make_response
-from flask_demo import generate_poster
+from .poster import generate_poster
 from random import choice
 
 app = Flask(__name__)
@@ -76,5 +76,9 @@ def hello():
     return response
 
 
-if __name__ == '__main__':
+def start_main():
     app.run(host='0.0.0.0', port='5000', debug=False)
+
+
+if __name__ == '__main__':
+    start_main()
