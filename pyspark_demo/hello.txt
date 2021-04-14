@@ -1,0 +1,183 @@
+厦大数据库实验室博客
+总结、分享、收获
+实验室主页
+
+首页
+大数据
+数据库
+数据挖掘
+其他
+
+搜索…
+Spark2.1.0+入门：Spark的安装和使用(Python版)
+ 阮榕城 2017年12月3日 (updated: 2017年12月6日) 8373
+大数据技术原理与应用
+【版权声明】博客内容由厦门大学数据库实验室拥有版权，未经允许，请勿转载！
+返回Spark教程首页
+Spark可以独立安装使用，也可以和Hadoop一起安装使用。本教程中，我们采用和Hadoop一起安装使用，这样，就可以让Spark使用HDFS存取数据。需要说明的是，当安装好Spark以后，里面就自带了scala环境，不需要额外安装scala，因此，“Spark安装”这个部分的教程，假设读者的计算机上，没有安装Scala，也没有安装Java（当然了，如果已经安装Java和Scala，也没有关系，依然可以继续按照本教程进行安装），也就是说，你的计算机目前只有Linux系统，其他的软件和环境都没有安装（没有Java，没有Scala，没有Hadoop，没有Spark），需要从零开始安装所有大数据相关软件。下面，需要你在自己的Linux系统上（笔者采用的Linux系统是Ubuntu16.04），首先安装Java和Hadoop，然后再安装Spark（Spark安装好以后，里面就默认包含了Scala解释器）。由于Ubuntu 16.04已经自带了Python 3.5版本，所以你的系统如果是Ubuntu 16.04，那么就不需要重新安装Python了。本教程也将以python3语法进行教学。
+本教程的具体运行环境如下：
+
+Ubuntu16.04以上
+Hadoop 2.7.1以上
+Java JDK 1.8以上
+Spark 2.1.0 以上
+Python 3.4以上
+
+一、安装Hadoop
+如果你的计算机上已经安装了Hadoop，本步骤可以略过。这里假设没有安装。如果没有安装Hadoop，请访问Hadoop安装教程_单机/伪分布式配置_Hadoop2.6.0/Ubuntu14.04,依照教程学习安装即可。注意，在这个Hadoop安装教程中，就包含了Java的安装，所以，按照这个教程，就可以完成JDK和Hadoop这二者的安装。
+
+二、安装Spark
+在Linux系统中打开浏览器，访问Spark官方下载地址，按照如下图下载。
+
+由于我们已经自己安装了Hadoop，所以，在“Choose a package type”后面需要选择“Pre-build with user-provided Hadoop [can use with most Hadoop distributions]”，然后，点击“Download Spark”后面的“spark-2.1.0-bin-without-hadoop.tgz”下载即可。下载的文件，默认会被浏览器保存在“/home/hadoop/下载”目录下。需要说明的是，Pre-build with user-provided Hadoop: 属于“Hadoop free”版，这样，下载到的Spark，可应用到任意Hadoop 版本。
+
+Spark部署模式主要有四种：Local模式（单机模式）、Standalone模式（使用Spark自带的简单集群管理器）、YARN模式（使用YARN作为集群管理器）和Mesos模式（使用Mesos作为集群管理器）。
+这里介绍Local模式（单机模式）的 Spark安装。我们选择Spark 2.1.0版本，并且假设当前使用用户名hadoop登录了Linux操作系统。
+
+sudo tar -zxf ~/下载/spark-2.1.0-bin-without-hadoop.tgz -C /usr/local/
+cd /usr/local
+sudo mv ./spark-2.1.0-bin-without-hadoop/ ./spark
+sudo chown -R hadoop:hadoop ./spark          # 此处的 hadoop 为你的用户名
+Shell 命令
+安装后，还需要修改Spark的配置文件spark-env.sh
+
+cd /usr/local/spark
+cp ./conf/spark-env.sh.template ./conf/spark-env.sh
+Shell 命令
+编辑spark-env.sh文件(vim ./conf/spark-env.sh)，在第一行添加以下配置信息:
+
+export SPARK_DIST_CLASSPATH=$(/usr/local/hadoop/bin/hadoop classpath)
+有了上面的配置信息以后，Spark就可以把数据存储到Hadoop分布式文件系统HDFS中，也可以从HDFS中读取数据。如果没有配置上面信息，Spark就只能读写本地数据，无法读写HDFS数据。
+
+然后通过如下命令，修改环境变量
+
+vim ~/.bashrc
+在.bashrc文件中添加如下内容
+
+export JAVA_HOME=/usr/lib/jvm/default-java
+export HADOOP_HOME=/usr/local/hadoop
+export SPARK_HOME=/usr/local/spark
+export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip:$PYTHONPATH
+export PYSPARK_PYTHON=python3
+export PATH=$HADOOP_HOME/bin:$SPARK_HOME/bin:$PATH
+PYTHONPATH环境变量主要是为了在Python3中引入pyspark库，PYSPARK_PYTHON变量主要是设置pyspark运行的python版本。
+.bashrc中必须包含JAVA_HOME,HADOOP_HOME,SPARK_HOME,PYTHONPATH,PYSPARK_PYTHON,PATH这些环境变量。如果已经设置了这些变量则不需要重新添加设置。
+接着还需要让该环境变量生效，执行如下代码：
+
+source ~/.bashrc
+Shell 命令
+配置完成后就可以直接使用，不需要像Hadoop运行启动命令。
+通过运行Spark自带的示例，验证Spark是否安装成功。
+
+cd /usr/local/spark
+bin/run-example SparkPi
+Shell 命令
+执行时会输出非常多的运行信息，输出结果不容易找到，可以通过 grep 命令进行过滤（命令中的 2>&1 可以将所有的信息都输出到 stdout 中，否则由于输出日志的性质，还是会输出到屏幕中）:
+
+bin/run-example SparkPi 2>&1 | grep "Pi is"
+这里涉及到Linux Shell中管道的知识，详情可以参考Linux Shell中的管道命令
+过滤后的运行结果如下图示，可以得到π 的 5 位小数近似值：
+
+
+三、在pyspark中运行代码
+学习Spark程序开发，建议首先通过pyspark交互式学习，加深Spark程序开发的理解。
+这里介绍pyspark 的基本使用。pyspark提供了简单的方式来学习 API，并且提供了交互的方式来分析数据。你可以输入一条语句，pyspark会立即执行语句并返回结果，这就是我们所说的REPL（Read-Eval-Print Loop，交互式解释器），为我们提供了交互式执行环境，表达式计算完成就会输出结果，而不必等到整个程序运行完毕，因此可即时查看中间结果，并对程序进行修改，这样可以在很大程度上提升开发效率。
+
+前面已经安装了Hadoop和Spark，如果Spark不使用HDFS和YARN，那么就不用启动Hadoop也可以正常使用Spark。如果在使用Spark的过程中需要用到 HDFS，就要首先启动 Hadoop（启动Hadoop的方法可以参考上面给出的Hadoop安装教程）。
+这里假设不需要用到HDFS，因此，就没有启动Hadoop。现在我们直接开始使用Spark。
+
+注意：如果按照上面的安装步骤，已经设置了PYSPARK_PYTHON环境变量，那么你直接使用如下命令启动pyspark即可。
+
+bin/pyspark
+Shell 命令
+如果没有设置PYSPARK_PYTHON环境变量，则使用如下命令启动pyspark
+
+PYSPARK_PYTHON=python3 ./bin/pyspark
+pyspark命令及其常用的参数如下：
+
+./bin/pyspark --master <master-url>
+Spark的运行模式取决于传递给SparkContext的Master URL的值。Master URL可以是以下任一种形式：
+* local 使用一个Worker线程本地化运行SPARK(完全不并行)
+* local[*] 使用逻辑CPU个数数量的线程来本地化运行Spark
+* local[K] 使用K个Worker线程本地化运行Spark（理想情况下，K应该根据运行机器的CPU核数设定）
+* spark://HOST:PORT 连接到指定的Spark standalone master。默认端口是7077.
+* yarn-client 以客户端模式连接YARN集群。集群的位置可以在HADOOP_CONF_DIR 环境变量中找到。
+* yarn-cluster 以集群模式连接YARN集群。集群的位置可以在HADOOP_CONF_DIR 环境变量中找到。
+* mesos://HOST:PORT 连接到指定的Mesos集群。默认接口是5050。
+
+需要强调的是，这里我们采用“本地模式”（local）运行Spark，关于如何在集群模式下运行Spark，可以参考后面的“在集群上运行Spark应用程序”。
+在Spark中采用本地模式启动pyspark的命令主要包含以下参数：
+–master：这个参数表示当前的pyspark要连接到哪个master，如果是local[*]，就是使用本地模式启动pyspark，其中，中括号内的星号表示需要使用几个CPU核心(core)；
+–jars： 这个参数用于把相关的JAR包添加到CLASSPATH中；如果有多个jar包，可以使用逗号分隔符连接它们；
+
+比如，要采用本地模式，在4个CPU核心上运行pyspark：
+
+cd /usr/local/spark
+./bin/pyspark --master local[4]
+Shell 命令
+或者，可以在CLASSPATH中添加code.jar，命令如下：
+
+cd /usr/local/spark
+./bin/pyspark --master local[4] --jars code.jar
+可以执行“pyspark –help”命令，获取完整的选项列表，具体如下：
+
+cd /usr/local/spark
+./bin/pyspark --help
+上面是命令使用方法介绍，下面正式使用命令进入pyspark环境，可以通过下面命令启动pyspark环境：
+
+bin/pyspark
+该命令省略了参数，这时，系统默认是“bin/pyspark–master local[*]”，也就是说，是采用本地模式运行，并且使用本地所有的CPU核心。
+
+启动pyspark后，就会进入“>>>”命令提示符状态,如下图所示：
+
+现在，你就可以在里面输入python代码进行调试了。
+比如，下面在命令提示符后面输入一个表达式“8 * 2 + 5”，然后回车，就会立即得到结果：
+
+>>> 8 * 2 + 5
+Python
+最后，可以使用命令“exit()”退出pyspark，如下所示：
+
+>>> exit()
+Python
+或者，也可以直接使用“Ctrl+D”组合键，退出pyspark。
+
+四、Spark独立应用程序编程
+接着我们通过一个简单的应用程序来演示如何通过 Spark API 编写一个独立应用程序。使用 Python进行spark编程比Java和Scala简单得多。
+在进行Python编程前，请先确定是否已经.bashrc中添加PYTHONPATH环境变量。
+接下来即可进行Python编程.
+这里在新建一个test.py文件,并在test.py添加代码
+
+cd ~
+vim test.py
+Shell 命令
+在test.py中添加如下代码,：
+
+from pyspark import SparkContext
+sc = SparkContext( 'local', 'test')
+logFile = "file:///usr/local/spark/README.md"
+logData = sc.textFile(logFile, 2).cache()
+numAs = logData.filter(lambda line: 'a' in line).count()
+numBs = logData.filter(lambda line: 'b' in line).count()
+print('Lines with a: %s, Lines with b: %s' % (numAs, numBs))
+Python
+保存代码后，通过如下命令执行：
+
+python3 ~/test.py
+Shell 命令
+执行结果如下图：
+
+最终得到的结果如下：
+
+Lines with a: 62, Lines with b: 30
+自此，你就完成了你的第一个 Spark 应用程序了。
+
+本文作者阮榕城
+阮榕城
+
+磨人的小妖精！
+
+www.nekomiao.memoc.qq@crnaur
+
+ http://dblab.xmu.edu.cn/blog/1689-2/
+ 大数据
+© 2014 厦大数据库实验室
