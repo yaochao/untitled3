@@ -168,7 +168,7 @@ def generate_poster(user_avatar_url=None,
 
     # 获取字节流
     byte_array = io.BytesIO()
-    bg_img = bg_img.resize((int(bg_img_x * 0.5), int(bg_img_y * 0.5)))
+    bg_img = bg_img.resize((int(bg_img_x * 0.7), int(bg_img_y * 0.7)))
     bg_img.save(byte_array, format='PNG')
     byte_array = byte_array.getvalue()
     return byte_array
