@@ -213,3 +213,4 @@ venv.bak/
 *.model
 #*.png
 # End of https://www.gitignore.io/api/macos,python,pycharm
+将删除 flask_demo/tmp/
