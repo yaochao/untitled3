@@ -27,7 +27,7 @@ def all_folder() -> list:
     return folders
 
 
-def removeComment(fp: str = None):
+def replaceStr(fp: str = None):
     """
     删除文件中的注释
     """
@@ -49,7 +49,7 @@ def main():
     for fp in all_files:
         if fp.endswith(".java"):
             print(fp)
-            removeComment(fp)
+            replaceStr(fp)
 
 
 if __name__ == '__main__':
